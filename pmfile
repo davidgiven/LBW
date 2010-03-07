@@ -1,0 +1,88 @@
+-- © 2007 David Given.
+-- LBW is licensed under the MIT open source license. See the COPYING
+-- file in this distribution for the full text.
+--
+-- $Id: pmfile 168 2010-02-06 23:09:14Z dtrg $
+-- $URL: https://wordgrinder.svn.sf.net/svnroot/wordgrinder/wordgrinder/pmfile $
+
+include "tools/c.pm"
+
+HOME = os.getenv("HOME")
+
+CBUILDFLAGS = {
+	'-Wall',
+	'-Wno-multichar',
+	--'-Os',
+	'-g',
+	'-fomit-frame-pointer'
+}
+
+CLIBRARIES = {
+	'm',
+}
+
+CDEFINES = {
+	'_ALL_SOURCE'
+}
+	
+CINCLUDES = {
+	'src'
+}
+
+CLINKFLAGS = {
+	--'-Wl,--image-base',
+	--'-Wl,0x00800000'
+	'-static',
+}
+
+lbw = cxxprogram {
+	cxxfile "src/main.cc",
+	cxxfile "src/utils.cc",
+	cxxfile "src/monitor.cc",
+	cxxfile "src/linux_errno.cc",
+	cxxfile "src/Exception.cc",
+	cxxfile "src/gs.cc",
+	cxxfile "src/user.cc",
+	cxxfile "src/elfloader/elfloader.cc",
+	cxxfile "src/filesystem/FD.cc",
+	cxxfile "src/filesystem/FileFD.cc",
+	cxxfile "src/filesystem/RawFD.cc",
+	cxxfile "src/filesystem/RawFD_Ioctl.cc",
+	cxxfile "src/filesystem/RawFD_Fnctl.cc",
+	cxxfile "src/filesystem/DirFD.cc",
+	cxxfile "src/filesystem/SocketFD.cc",
+	cxxfile "src/filesystem/UnixSocketFD.cc",
+	cxxfile "src/filesystem/IPSocketFD.cc",
+	cxxfile "src/filesystem/file.cc",
+	cxxfile "src/filesystem/termios.cc",
+	cxxfile "src/filesystem/VFS.cc",
+	cxxfile "src/filesystem/VFSNode.cc",
+	cxxfile "src/filesystem/RootVFSNode.cc",
+	cxxfile "src/filesystem/InterixVFSNode.cc",
+	cxxfile "src/syscalls/_dispatch.cc",
+	cxxfile "src/syscalls/_names.cc",
+	cxxfile "src/syscalls/process.cc",
+	cxxfile "src/syscalls/file.cc",
+	cxxfile "src/syscalls/fd.cc",
+	cxxfile "src/syscalls/stat.cc",
+	cxxfile "src/syscalls/statfs.cc",
+	cxxfile "src/syscalls/misc.cc",
+	cxxfile "src/syscalls/mmap.cc",
+	cxxfile "src/syscalls/memory.cc",
+	cxxfile "src/syscalls/thread.cc",
+	cxxfile "src/syscalls/signals.cc",
+	cxxfile "src/syscalls/fork.cc",
+	cxxfile "src/syscalls/clone.cc",
+	cxxfile "src/syscalls/time.cc",
+	cxxfile "src/syscalls/sockets.cc",
+	cxxfile "src/syscalls/selectpoll.cc",
+	--cfile "src/binfmt/binfmt_elf.c",
+	file "ntdll.lib",
+
+	install = pm.install("lbw")
+}
+
+default = group {
+	lbw,
+}
+
