@@ -11,6 +11,7 @@ int ErrnoI2L(int e)
 		case EIO:             return LINUX_EIO;
 		case EISDIR:          return LINUX_EISDIR;
 		case ENOENT:          return LINUX_ENOENT;
+		case ENOEXEC:         return LINUX_ENOEXEC;
 		case ENOMEM:          return LINUX_ENOMEM;
 		case ENOPROTOOPT:     return LINUX_ENOPROTOOPT;
 		case ENOSYS:          return LINUX_ENOSYS;
@@ -20,6 +21,7 @@ int ErrnoI2L(int e)
 		case EPROTONOSUPPORT: return LINUX_EPROTONOSUPPORT;
 		case EPROTOTYPE:      return LINUX_EPROTOTYPE;
 		case ESRCH:           return LINUX_ESRCH;
+		case ETIMEDOUT:       return LINUX_ETIMEDOUT;
 	}
 
 	printf("interix errno %d!\n", e);
