@@ -1,11 +1,21 @@
 #include "globals.h"
 #include "elfloader/ElfLoader.h"
+#include "syscalls/mmap.h"
+#include "filesystem/FD.h"
 #include <pthread.h>
+#include <vector>
+
+using std::vector;
 
 static pthread_mutex_t lock;
 static ElfLoader* executable = NULL;
 static ElfLoader* interpreter = NULL;
+static vector<string> arguments;
+static vector<string> environment;
 
+/* Used when a new process is started; initialises everything that needs to
+ * be done anew for any process. (Such as pthread mutexes and GS.)
+ */
 void InitProcess()
 {
 	pthread_mutexattr_t attr;
@@ -20,6 +30,16 @@ void InitProcess()
 	InitGSStore();
 }
 
+/* Used once we've committed to loading a new executable. Deinits all
+ * resources that aren't going to be carried over to the new
+ * executable. In particular: memory mappings, file descriptors.
+ */
+void FlushExecutable()
+{
+	UnmapAll();
+	FD::Flush();
+}
+
 void Lock()
 {
 	pthread_mutex_lock(&lock);
@@ -30,32 +50,60 @@ void Unlock()
 	pthread_mutex_unlock(&lock);
 }
 
-int Exec(int argc, const char* argv[], const char* environ[])
+void Exec(const string& pathname, const char* argv[], const char* environ[])
 {
 	log("opening %s", argv[0]);
+
+	int argvsize;
+	int envsize;
 
 	void* entrypoint;
 	ElfLoader* newExecutable = new ElfLoader();
 	ElfLoader* newInterpreter = NULL;
+
+	newExecutable->Open(pathname);
+
+	if (newExecutable->HasInterpreter())
+	{
+		newInterpreter = new ElfLoader();
+		newInterpreter->Open(newExecutable->GetInterpreter());
+	}
+
+	/* This is the commit point. We're now ready to either load the new
+	 * executable, or die trying. As we're about to nuke the process
+	 * memory, including the function that called us, we cannot return
+	 * from here.
+	 */
+
 	try
 	{
-		newExecutable->Open(argv[0]);
-
-		if (newExecutable->HasInterpreter())
-		{
-			newInterpreter = new ElfLoader();
-			newInterpreter->Open(newExecutable->GetInterpreter());
-		}
-
-		/* If the open succeeded, flush the old executable and commit to
-		 * using the new one.
+		/* Before doing anything else, copy the new argument list and
+		 * environment into LBW's memory, as we're about to nuke the old
+		 * process'.
 		 */
 
+		argvsize = 0;
+		arguments.clear();
+		while (argv[argvsize])
+		{
+			arguments.push_back(argv[argvsize]);
+			argvsize++;
+		}
+
+		envsize = 0;
+		environment.clear();
+		while (environ[envsize])
+		{
+			environment.push_back(environ[envsize]);
+			envsize++;
+		}
+
+		/* Now flush the old executable. */
+
+		FlushExecutable();
 		if (executable)
 		{
-			executable->Close();
 			delete executable;
-			interpreter->Close();
 			delete interpreter;
 		}
 		executable = newExecutable;
@@ -73,61 +121,69 @@ int Exec(int argc, const char* argv[], const char* environ[])
 			executable->Load();
 			entrypoint = executable->GetEntrypoint();
 		}
+
+		delete newExecutable;
+
+		InitProcess();
+
+		int auxsize = 5*2 + 1;
+
+		/* Count the environment and argument array, and copy the data out of
+		 * the
+		 */
+
+		int arraysize = argvsize + 1 + envsize + 1 + auxsize;
+		const char* calldata[arraysize];
+
+		int index = 0;
+		for (int i = 0; i < argvsize; i++)
+			calldata[index++] = arguments[i].c_str();
+		calldata[index++] = NULL;
+		for (int i = 0; i < envsize; i++)
+			calldata[index++] = environment[i].c_str();
+		calldata[index++] = NULL;
+
+		calldata[index++] = (const char*) AT_PHDR;
+		calldata[index++] = (const char*) &executable->GetProgramHeader(0);
+		calldata[index++] = (const char*) AT_PHENT;
+		calldata[index++] = (const char*) executable->GetProgramHeaderSize();
+		calldata[index++] = (const char*) AT_PHNUM;
+		calldata[index++] = (const char*) executable->GetNumProgramHeaders();
+		calldata[index++] = (const char*) AT_ENTRY;
+		calldata[index++] = (const char*) executable->GetEntrypoint();
+		calldata[index++] = (const char*) AT_PAGESZ;
+		calldata[index++] = (const char*) 0x1000;
+		calldata[index++] = (const char*) AT_NULL;
+
+		log("running code now");
+		asm volatile (
+			"mov %1, %%esp; " // set stack to startup data
+			"push %0; " // argc
+			"push %2; " //routine to call
+			"xor %%eax, %%eax; "
+			"mov %%eax, %%ebx; "
+			"mov %%eax, %%ecx; "
+			"mov %%eax, %%edx; "
+			"mov %%eax, %%esi; "
+			"mov %%eax, %%edi; "
+			"mov %%eax, %%ebp; "
+			"ret"
+			:
+			: "r" (argvsize),
+			  "r" (calldata),
+			  "r" (entrypoint)
+			);
+		_exit(0);
 	}
 	catch (int e)
 	{
-		error("could not load executable: %d", e);
+		log("failed to exec() process with errno %d", e);
+		_exit(1);
 	}
-	delete newExecutable;
-
-	InitProcess();
-
-	int auxsize = 5*2 + 1;
-
-	int envsize = 0;
-	while (environ[envsize])
-		envsize++;
-
-	int argvsize = argc;
-	int arraysize = argvsize + 1 + envsize + 1 + auxsize;
-	const char* calldata[arraysize];
-
-	int index = 0;
-	for (int i = 0; i < argvsize+1; i++)
-		calldata[index++] = argv[i];
-	for (int i = 0; i < envsize+1; i++)
-		calldata[index++] = environ[i];
-
-	calldata[index++] = (const char*) AT_PHDR;
-	calldata[index++] = (const char*) &executable->GetProgramHeader(0);
-	calldata[index++] = (const char*) AT_PHENT;
-	calldata[index++] = (const char*) executable->GetProgramHeaderSize();
-	calldata[index++] = (const char*) AT_PHNUM;
-	calldata[index++] = (const char*) executable->GetNumProgramHeaders();
-	calldata[index++] = (const char*) AT_ENTRY;
-	calldata[index++] = (const char*) executable->GetEntrypoint();
-	calldata[index++] = (const char*) AT_PAGESZ;
-	calldata[index++] = (const char*) 0x1000;
-	calldata[index++] = (const char*) AT_NULL;
-
-	log("running code now");
-	asm volatile (
-		"mov %1, %%esp; " // set stack to startup data
-		"push %0; " // argc
-		"push %2; " //routine to call
-		"xor %%eax, %%eax; "
-		"mov %%eax, %%ebx; "
-		"mov %%eax, %%ecx; "
-		"mov %%eax, %%edx; "
-		"mov %%eax, %%esi; "
-		"mov %%eax, %%edi; "
-		"mov %%eax, %%ebp; "
-		"ret"
-		:
-		: "r" (argc),
-		  "r" (calldata),
-		  "r" (entrypoint)
-		);
-	_exit(0);
+	catch (...)
+	{
+		log("mysterious exception! terminating");
+		_exit(1);
+	}
 }
 

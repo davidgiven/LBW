@@ -1,6 +1,15 @@
+/* © 2010 David Given.
+ * LBW is licensed under the MIT open source license. See the COPYING
+ * file in this distribution for the full text.
+ *
+ * $Id: pmfile 168 2010-02-06 23:09:14Z dtrg $
+ * $URL: https://wordgrinder.svn.sf.net/svnroot/wordgrinder/wordgrinder/pmfile $
+ */
+
 #include "globals.h"
 #include "filesystem/FD.h"
 #include "filesystem/VFS.h"
+#include "syscalls/mmap.h"
 #include "ElfLoader.h"
 #include "binfmts.h"
 #include "a.out.h"
@@ -740,13 +749,17 @@ void ElfLoader::Open(const string& filename)
 
 void ElfLoader::Close()
 {
+	log("_phdr=%p", _phdr);
 	delete [] _phdr;
 	_entrypoint = 0;
 }
 
 void ElfLoader::Load()
 {
-	int fd = _fd->GetRealFD();
+	/* We can only load ET_DYN and ET_EXEC executables. */
+
+	if ((_elfhdr.e_type != ET_DYN) && (_elfhdr.e_type != ET_EXEC))
+		error("not a supported ELF type! %d", _elfhdr.e_type);
 
 	/* First, determine the memory range that's going to be in use. */
 
@@ -769,13 +782,66 @@ void ElfLoader::Load()
 
 	log("min addr = %08lx, max addr = %08lx", minaddr, maxaddr);
 
-	minaddr = minaddr & ~0xffff;
-	maxaddr = (maxaddr + 0xffff) & ~0xffff;
+#if 1
+	/* If this is a dynamic executable, allocate an address range for it. */
 
-	log("actual min addr = %08lx, max addr = %08lx", minaddr, maxaddr);
+	u32 loadaddress = 0;
+	if (_elfhdr.e_type == ET_DYN)
+	{
+		assert(minaddr == 0);
+		loadaddress = do_mmap(NULL, maxaddr,
+				LINUX_PROT_READ | LINUX_PROT_WRITE | LINUX_PROT_EXEC,
+				LINUX_MAP_PRIVATE | LINUX_MAP_ANONYMOUS,
+				_fd, 0);
+		do_munmap((u8*) loadaddress, maxaddr);
+	}
 
 	/* Load the executable into memory. */
 
+	for (size_t i=0; i<GetNumProgramHeaders(); i++)
+	{
+		const struct elf_phdr& ph = GetProgramHeader(i);
+		if (ph.p_type == PT_LOAD)
+		{
+			int prot = 0;
+			if (ph.p_flags & PF_R)
+				prot |= LINUX_PROT_READ;
+			if (ph.p_flags & PF_W)
+				prot |= LINUX_PROT_WRITE;
+			if (ph.p_flags & PF_X)
+				prot |= LINUX_PROT_EXEC;
+
+			u32 addr = align<0x1000>(loadaddress + ph.p_vaddr);
+			u32 mlen = ph.p_memsz + offset<0x1000>(ph.p_vaddr);
+			u32 flen = ph.p_filesz + offset<0x1000>(ph.p_vaddr);
+			u32 off = ph.p_offset - offset<0x1000>(ph.p_vaddr);
+
+			/* Ensure the entire area contains writeable memory. */
+
+			if (prot & LINUX_PROT_WRITE)
+			{
+				do_mmap((u8*) addr, mlen, prot,
+						LINUX_MAP_PRIVATE | LINUX_MAP_FIXED | LINUX_MAP_ANONYMOUS,
+						_fd, off);
+			}
+
+			/* Load the actual data. */
+
+			do_mmap((u8*) addr, flen, prot,
+					LINUX_MAP_PRIVATE | LINUX_MAP_FIXED,
+					_fd, off);
+		}
+	}
+
+	_entrypoint = _elfhdr.e_entry + loadaddress;
+	log("entrypoint is %08x", _entrypoint);
+
+#else
+	minaddr = align<0x10000>(minaddr);
+	maxaddr = alignup<0x10000>(maxaddr);
+
+	int fd = _fd->GetRealFD();
+	u32 loadoffset = 0;
 	switch (_elfhdr.e_type)
 	{
 		case ET_EXEC:
@@ -807,6 +873,8 @@ void ElfLoader::Load()
 				{
 					if (ph.p_filesz > 0)
 					{
+				    	log("area(%08x to %08x %08x)", ph.p_vaddr,
+				    			ph.p_vaddr+ph.p_memsz, ph.p_offset);
 						int i = pread(fd, (void*)ph.p_vaddr, ph.p_filesz,
 								ph.p_offset);
 						if (i == -1)
@@ -860,4 +928,5 @@ void ElfLoader::Load()
 		default:
 			error("not a supported ELF type! %d", _elfhdr.e_type);
 	}
+#endif
 }
