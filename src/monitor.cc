@@ -2,6 +2,7 @@
 #include <sys/procfs.h>
 #include <sys/fault.h>
 
+
 class Monitor
 {
 public:
@@ -52,6 +53,18 @@ public:
 	}
 
 private:
+	void log(const char* format, ...)
+	{
+		va_list ap;
+		va_start(ap, format);
+
+		writef(2, "lbw(%luM): ", _pid);
+		vwritef(2, format, ap);
+		writef(2, "\n");
+
+		va_end(ap);
+	}
+
 	template <class T> int cmd(PROC_CTL_WORD_TYPE opcode, const T& argument)
 	{
 		struct
