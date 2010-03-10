@@ -29,21 +29,6 @@ static const u32 RANGE_TOP    = 0x80000000;
 
 static const u32 BLOCK_COUNT = (RANGE_TOP - RANGE_BOTTOM) / BLOCK_SIZE;
 
-template <int SIZE, typename T> static T align(T address)
-{
-	return (T)((u32)address & ~(SIZE-1));
-}
-
-template <int SIZE, typename T> static u32 offset(T address)
-{
-	return (u32)address & (SIZE-1);
-}
-
-template <int SIZE, typename T> static bool aligned(T address)
-{
-	return offset<SIZE>(address) == 0;
-}
-
 class Block
 {
 public:
@@ -150,7 +135,7 @@ public:
 		for (u32 block = 0; block < BLOCK_COUNT; block++)
 		{
 			delete _blocks[block];
-			_blocks[block] = 0;
+			_blocks[block] = NULL;
 		}
 	}
 
@@ -293,6 +278,11 @@ private:
 	Block* _blocks[BLOCK_COUNT];
 };
 static BlockStore blockstore;
+
+void UnmapAll()
+{
+	blockstore.Reset();
+}
 
 struct linux_mmap_arg_struct
 {
