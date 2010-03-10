@@ -1,10 +1,12 @@
 #include "globals.h"
 #include "FD.h"
 #include <map>
+#include <list>
 
 // #define LOG_REFCOUNTING
 
 using std::map;
+using std::list;
 
 typedef map<int, Ref<FD> > FDS;
 static FDS fds;
@@ -89,6 +91,27 @@ void FD::SetCloexec(int fd, bool f)
 	if (i == fds.end())
 		throw EBADF;
 	cloexecs[fd] = f;
+}
+
+void FD::Flush()
+{
+	RAIILock locked;
+
+	FDS::iterator i = fds.begin();
+	while (i != fds.end())
+	{
+		int fd = i->first;
+		if (cloexecs[fd])
+		{
+			log("closing fd %d", fd);
+			fds.erase(i++);
+		}
+		else
+		{
+			log("not closing fd %d", fd);
+			i++;
+		}
+	}
 }
 
 /* --- General FD management --------------------------------------------- */

@@ -1,3 +1,8 @@
+/* © 2010 David Given.
+ * LBW is licensed under the MIT open source license. See the COPYING
+ * file in this distribution for the full text.
+ */
+
 #include "globals.h"
 #include "file.h"
 
@@ -26,12 +31,7 @@ u_int32_t FileFlagsL2I(u_int32_t flags)
 	if (flags & LINUX_O_SYNC)
 		iflags |= O_SYNC;
 
-	/* Ignore LINUX_O_LARGEFILE */
-
-	if ((flags & LINUX_O_NOATIME))
-	{
-		Warning("unimplemented file flags octal %o", flags);
-	}
+	/* Ignore LINUX_O_LARGEFILE and LINUX_O_NOATIME */
 
 	return iflags;
 }

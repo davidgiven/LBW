@@ -12,6 +12,7 @@ public:
 	static void Delete(int fd);
 	static int Dup(int fd, int newfd=-1);
 	static Ref<FD> Get(int fd);
+	static void Flush();
 
 	static bool GetCloexec(int fd);
 	static void SetCloexec(int fd, bool f);
