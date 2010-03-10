@@ -46,14 +46,24 @@ struct Options_s
 
 extern Options_s Options;
 
-static inline u_int32_t MemoryRoundDown(u_int32_t addr)
+template <int SIZE, typename T> static inline T align(T address)
 {
-	return addr & ~0xffff;
+	return (T)((u32)address & ~(SIZE-1));
 }
 
-static inline u_int32_t MemoryRoundUp(u_int32_t addr)
+template <int SIZE, typename T> static inline T alignup(T address)
 {
-	return (addr + 0xffff) & ~0xffff;
+	return (T)(((u32)address + (SIZE-1)) & ~(SIZE-1));
+}
+
+template <int SIZE, typename T> static inline u32 offset(T address)
+{
+	return (u32)address & (SIZE-1);
+}
+
+template <int SIZE, typename T> static inline bool aligned(T address)
+{
+	return offset<SIZE>(address) == 0;
 }
 
 extern void vwritef(int fd, const char* format, va_list ap);
@@ -93,7 +103,7 @@ extern string StringF(const char* format, ...);
 extern void InitProcess();
 extern void Lock();
 extern void Unlock();
-extern int Exec(int argc, const char* argv[], const char* environ[]);
+extern void Exec(const string& pathname, const char* argv[], const char* environ[]);
 
 class RAIILock
 {
