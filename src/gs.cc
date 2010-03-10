@@ -229,6 +229,16 @@ void InterpretGS_MCE_Handler(Registers& regs)
 			}
 		}
 
+		case 0x8a: // mov Gb, Eb
+		{
+			u8 modrm = read<u8>(ip);
+			switch (getmodrmsize(modrm))
+			{
+				case 4:	 return patchedinstruction(regs, out, 6, 2);
+				default: goto unknown;
+			}
+		}
+
 		case 0x03: // add Gv, Ev
 		case 0x33: // xor Gv, Ev
 		case 0x87: // xchg Ev, Gv
@@ -277,60 +287,4 @@ void InterpretGS_MCE_Handler(Registers& regs)
 				error("unable to interpret above instruction sequence");
 			}
 	}
-
-#if 0
-	u16 instruction = *(u16*) regs.eip;
-
-	switch (instruction)
-	{
-		case 0xc765: // mov <const32>, [gs+reg]
-		{
-			u8 modrm = *(u8*) (regs.eip + 2);
-			if (modrm == 0)
-			{
-				unsigned int const32 = *(unsigned int*) (regs.eip + 3);
-
-				//log("mov %08x, (%08x+%08x)", const32, linear, regs.eax);
-				*(unsigned int*)(linear+regs.eax.u) = const32;
-				regs.eip += 7;
-			}
-			else
-				goto unknown;
-			break;
-		}
-
-		case 0x8b65: // mov [gs+reg], reg
-		{
-			unsigned char modrm = *(unsigned char*) (regs.eip + 2);
-			regs.eip += 3;
-
-			Argument& destreg = getdestreg(regs, (modrm >> 3) & 7);
-			u_int32_t source = getsrc(regs, modrm & 0xc7);
-
-			//log("mov (%08x+%08x), reg", linear, source);
-			destreg.u = *(unsigned int*)(linear+source);
-			break;
-		}
-
-		case 0xa365: // mov eax, [gs+offset]
-		{
-			unsigned int const32 = *(unsigned int*) (regs.eip + 2);
-
-			*(unsigned int*)(linear+const32) = regs.eax.u;
-
-			regs.eip += 6;
-			break;
-		}
-
-		case 0x8365: //
-		default:
-		unknown:
-		{
-			DumpMemory(address, 128);
-			error("unable to interpret above instruction sequence");
-		}
-	}
-#endif
-
-	//regs.gs = (u_int32_t) pthread_getspecific(gs_key);
 }
