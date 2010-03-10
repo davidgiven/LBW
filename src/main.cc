@@ -153,7 +153,7 @@ static void add_std_fd(int fd)
 	Ref<RawFD> fdo = new RawFD();
 	fdo->Reference(); // never allow these objects to be destroyed
 	fdo->Open(fd);
-	assert(FD::New(fdo) == fd);
+	assert(FD::New(fdo) == fd); // ensure they have the right fd
 }
 
 int main(int argc, const char* argv[], const char* environ[])
@@ -177,7 +177,7 @@ int main(int argc, const char* argv[], const char* environ[])
 	add_std_fd(2);
 
 	StartMonitor();
-	Exec(argc, argv, environ);
+	Exec(argv[0], argv, environ);
 	return 0;
 }
 
