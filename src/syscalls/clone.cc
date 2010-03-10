@@ -59,15 +59,23 @@ SYSCALL(sys32_clone)
 
 	log("clone flags=%08x newsp=%08x ptid=%p ctid=%p", clone_flags, newsp,
 			parent_tid, child_tid);
-error("clone unsupported");
 	switch (clone_flags)
 	{
 		case 0x01200011: /* fork, I think */
 		{
 			pid_t newpid = stub32_fork(arg);
-			if (newpid != 0)
+			switch (newpid)
 			{
-				log("forked new process %d", newpid);
+				case 0: /* child */
+					if (clone_flags & LINUX_CLONE_CHILD_SETTID)
+					{
+						if (child_tid)
+							*(pid_t*)child_tid = getpid();
+					}
+					break;
+
+				default: /* parent */
+					break;
 			}
 			return newpid;
 		}
