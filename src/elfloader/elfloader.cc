@@ -1,9 +1,6 @@
 /* © 2010 David Given.
  * LBW is licensed under the MIT open source license. See the COPYING
  * file in this distribution for the full text.
- *
- * $Id: pmfile 168 2010-02-06 23:09:14Z dtrg $
- * $URL: https://wordgrinder.svn.sf.net/svnroot/wordgrinder/wordgrinder/pmfile $
  */
 
 #include "globals.h"
