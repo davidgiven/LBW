@@ -32,7 +32,7 @@ SYSCALL(compat_sys_open)
 	int flags = arg.a1.s;
 	int mode = arg.a2.s;
 
-	log("open(%s)", filename);
+	//log("open(%s)", filename);
 
 	bool nofollow = flags & LINUX_O_NOFOLLOW;
 
