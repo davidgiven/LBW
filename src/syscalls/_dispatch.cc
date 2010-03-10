@@ -1,7 +1,7 @@
 #include "globals.h"
 #include "syscalls.h"
 
-//#define VERBOSE
+// #define VERBOSE
 
 extern "C" int32_t Linux_MCE_Handler(Registers& regs)
 	__attribute__ ((regparm (1)))
@@ -56,9 +56,10 @@ int32_t Linux_MCE_Handler(Registers& regs)
 	regs.eip += 2; /* don't retry the int when we return */
 
 #if defined VERBOSE
-	log("syscall #%d %s(%08x, %08x, %08x, %08x, %08x, %08x)", regs.arg.syscall, SyscallNames[regs.arg.syscall],
+	log("syscall #%d %s(%08x, %08x, %08x, %08x, %08x, %08x) from %08x", regs.arg.syscall, SyscallNames[regs.arg.syscall],
 			regs.arg.a0.u, regs.arg.a1.u, regs.arg.a2.u,
-			regs.arg.a3.u, regs.arg.a4.u, regs.arg.a5.u);
+			regs.arg.a3.u, regs.arg.a4.u, regs.arg.a5.u,
+			regs.eip);
 #endif
 
 	Syscall* syscall;
@@ -79,6 +80,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(  7, sys32_waitpid);
 		CALL_SYSCALL(  9, sys_link);
 		CALL_SYSCALL( 10, sys_unlink);
+		CALL_SYSCALL( 11, sys32_execve);
 		CALL_SYSCALL( 12, sys_chdir);
 		CALL_SYSCALL( 13, compat_sys_time);
 		CALL_SYSCALL( 15, sys_chmod);
