@@ -14,7 +14,8 @@
 #define LINUX_FUTEX_WAKE_BITSET       10
 
 #define LINUX_FUTEX_PRIVATE_FLAG      128
-#define LINUX_FUTEX_CMD_MASK          ~LINUX_FUTEX_PRIVATE_FLAG
+#define LINUX_FUTEX_CLOCK_REALTIME	256
+#define LINUX_FUTEX_CMD_MASK		~(LINUX_FUTEX_PRIVATE_FLAG | LINUX_FUTEX_CLOCK_REALTIME)
 
 #define LINUX_FUTEX_WAIT_PRIVATE      (LINUX_FUTEX_WAIT | LINUX_FUTEX_PRIVATE_FLAG)
 #define LINUX_FUTEX_WAKE_PRIVATE      (LINUX_FUTEX_WAKE | LINUX_FUTEX_PRIVATE_FLAG)
@@ -308,7 +309,7 @@ SYSCALL(sys_set_tid_address)
 SYSCALL(compat_sys_set_robust_list)
 {
 	Warning("compat_sys_set_robust_list() currently unimplemented");
-	return -LINUX_ENOSYS;
+	return 0; //-LINUX_ENOSYS;
 }
 
 SYSCALL(compat_sys_futex)
@@ -320,10 +321,29 @@ SYSCALL(compat_sys_futex)
 	int* uaddr2 = (int*) arg.a4.p;
 	int val3 = arg.a5.s;
 
-	log("uaddr=%08x, *uaddr=%08x, val=%08x", uaddr, *uaddr, val);
+	log("op=%02x uaddr=%08x, *uaddr=%08x, val=%08x, timespec=%p, uaddr2=%08x, val3=%08x", op, uaddr, *uaddr, val,
+			timespec, uaddr2, val3);
+
+	int cmd = op & LINUX_FUTEX_CMD_MASK;
+	switch (cmd)
+	{
+		case LINUX_FUTEX_WAIT:
+			*uaddr = 0;
+			log("FUTEX_WAIT faked");
+			return 0;
+
+		case LINUX_FUTEX_WAKE:
+			return 0;
+
+		case LINUX_FUTEX_WAIT_BITSET:
+			throw EINVAL;
+
+		default:
+			error("compat_sys_futex(%x) currently unimplemented", op);
+	}
+
 	//sleep(-1);
-	log("compat_sys_futex(%x) currently unimplemented", op);
-	return -LINUX_ENOSYS;
+	throw ENOSYS;
 }
 
 SYSCALL(sys_gettid)
