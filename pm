@@ -48,7 +48,7 @@ else
 	CC="cc"
 fi
 
-extract_section 24323  157694 > /tmp/pm-$$.c
+extract_section 24323  157756 > /tmp/pm-$$.c
 $CC $CFILE -o "$PMEXEC" && exec "$0" "$@"
 
 echo "pm: bootstrap failed."
@@ -5422,11 +5422,15 @@ W6(L,1,X8b,N8b,NULL);}static
 int
 o5b(a*L){int
 fd=a1(L,1,0);I(L,ttyname(fd));return
-1;}static
+1;}
+#if defined L_ctermid
+static
 int
 p6b(a*L){char
 b[L_ctermid];I(L,ctermid(b));return
-1;}static
+1;}
+#endif
+static
 int
 M3b(a*L){I(L,getlogin());return
 1;}static
@@ -5571,7 +5575,11 @@ e6b(a*L){return
 W6(L,1,A6b,N5b,NULL);}static
 const
 g3
-R[]={{"access",H7b},{"chdir",C8b},{"chmod",g9b},{"chown",T8b},{"ctermid",p6b},{"dir",Q_c},{"errno",K8b},{"exec",Q9b},{"files",w8b},{"fork",i_c},{"getcwd",Z7b},{"getenv",Q7b},{"getgroup",N3b},{"getlogin",M3b},{"getpasswd",i3b},{"getprocessid",v9a},{"kill",V9b},{"link",h_c},{"mkdir",s8b},{"mkfifo",e8b},{"pathconf",s4b},{"putenv",i7b},{"readlink",V3b},{"rmdir",F8b},{"setgid",h7b},{"setuid",K7b},{"sleep",E8b},{"stat",N9b},{"symlink",F5b},{"sysconf",e6b},{"times",d9b},{"ttyname",o5b},{"umask",i9b},{"uname",y8b},{"unlink",P7b},{"utime",o9b},{"wait",d_c},
+R[]={{"access",H7b},{"chdir",C8b},{"chmod",g9b},{"chown",T8b},
+#if defined L_ctermid
+{"ctermid",p6b},
+#endif
+{"dir",Q_c},{"errno",K8b},{"exec",Q9b},{"files",w8b},{"fork",i_c},{"getcwd",Z7b},{"getenv",Q7b},{"getgroup",N3b},{"getlogin",M3b},{"getpasswd",i3b},{"getprocessid",v9a},{"kill",V9b},{"link",h_c},{"mkdir",s8b},{"mkfifo",e8b},{"pathconf",s4b},{"putenv",i7b},{"readlink",V3b},{"rmdir",F8b},{"setgid",h7b},{"setuid",K7b},{"sleep",E8b},{"stat",N9b},{"symlink",F5b},{"sysconf",e6b},{"times",d9b},{"ttyname",o5b},{"umask",i9b},{"uname",y8b},{"unlink",P7b},{"utime",o9b},{"wait",d_c},
 #ifdef linux
 {"setenv",X7b},{"unsetenv",L3b},
 #endif
