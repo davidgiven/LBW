@@ -449,6 +449,22 @@ static s32 __stdcall handler_cb(EXCEPTION_POINTERS* ep)
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
+		case 0x8e: /* GS load, probably */
+		{
+			/* If this is an attempt to load %gs with the correct value,
+			 * ignore it (as we're entirely emulating %gs support).
+			 */
+
+			if (code[1] != 0xe8)
+				goto fallback;
+
+			if (ep->ContextRecord->Eax != 0x53)
+				error("attempt to load %gs with the wrong value: %08x", ep->ContextRecord->Eax);
+
+			ep->ContextRecord->Eip += 2;
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+
 		default:
 			printregs(*ep->ContextRecord);
 			exit(0);
