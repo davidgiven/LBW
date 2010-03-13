@@ -22,16 +22,21 @@ void writef(int fd, const char* format, ...)
 	va_end(ap);
 }
 
-string cprintf(const char* format, ...)
+string vcprintf(const char* format, va_list ap)
 {
 	char buffer[160];
+	vsnprintf(buffer, sizeof(buffer), format, ap);
+	return buffer;
+}
 
+string cprintf(const char* format, ...)
+{
 	va_list ap;
 	va_start(ap, format);
-	vsnprintf(buffer, sizeof(buffer), format, ap);
+	string s = vcprintf(format, ap);
 	va_end(ap);
 
-	return buffer;
+	return s;
 }
 
 void DumpMemory(const void* address, u_int32_t len)

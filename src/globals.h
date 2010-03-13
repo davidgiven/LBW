@@ -52,6 +52,7 @@ extern Options_s Options;
 extern void vwritef(int fd, const char* format, va_list ap);
 extern void writef(int fd, const char* format, ...);
 extern string cprintf(const char* format, ...);
+extern string vcprintf(const char* format, va_list ap);
 
 extern void log(const char* format, ...);
 extern void Warning(const char* format, ...);

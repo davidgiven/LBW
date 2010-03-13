@@ -23,9 +23,11 @@ void log(const char* format, ...)
 	va_list ap;
 	va_start(ap, format);
 
-	writef(2, "lbw(%lu): ", getpid());
-	vwritef(2, format, ap);
-	writef(2, "\n");
+	string s = cprintf("lbw(%lu): ", getpid());
+	s += vcprintf(format, ap);
+	s += "\n";
+
+	write(2, s.data(), s.size());
 
 	va_end(ap);
 }
@@ -35,9 +37,11 @@ void Warning(const char* format, ...)
 	va_list ap;
 	va_start(ap, format);
 
-	writef(2, "lbw(%lu) warning: ", getpid());
-	vwritef(2, format, ap);
-	writef(2, "\n");
+	string s = cprintf("lbw(%lu) warning: ", getpid());
+	s += vcprintf(format, ap);
+	s += "\n";
+
+	write(2, s.data(), s.size());
 
 	va_end(ap);
 }
@@ -47,9 +51,11 @@ void error(const char* format, ...)
 	va_list ap;
 	va_start(ap, format);
 
-	writef(2, "lbw(%lu) error: ", getpid());
-	vwritef(2, format, ap);
-	writef(2, "\n");
+	string s = cprintf("lbw(%lu) error: ", getpid());
+	s += vcprintf(format, ap);
+	s += "\n";
+
+	write(2, s.data(), s.size());
 
 	va_end(ap);
 	_exit(-1);
