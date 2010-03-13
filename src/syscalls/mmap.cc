@@ -7,6 +7,7 @@
 #include "syscalls.h"
 #include "filesystem/RawFD.h"
 #include "syscalls/mmap.h"
+#include "MemOp.h"
 #include <sys/mman.h>
 #include <map>
 #include <bitset>
@@ -159,9 +160,9 @@ public:
 	void Map(u8* address, u32 length, int realfd, u32 offset,
 					bool shared, bool w, bool x)
 	{
-		assert(aligned<BLOCK_SIZE>(address));
-		assert(aligned<BLOCK_SIZE>(length));
-		assert(aligned<BLOCK_SIZE>(offset));
+		assert(MemOp::Aligned<BLOCK_SIZE>(address));
+		assert(MemOp::Aligned<BLOCK_SIZE>(length));
+		assert(MemOp::Aligned<BLOCK_SIZE>(offset));
 
 		try
 		{
@@ -188,7 +189,7 @@ public:
 	/* address must be 64kB-aligned. */
 	bitset<16>& GetPageMap(u8* address)
 	{
-		assert(aligned<BLOCK_SIZE>(address));
+		assert(MemOp::Aligned<BLOCK_SIZE>(address));
 
 		Block*& block = GetBlock(address);
 		if (!block)
@@ -226,7 +227,7 @@ public:
 	/* address must be 64kB-aligned */
 	void Unmap(u8* address)
 	{
-		assert(aligned<BLOCK_SIZE>(address));
+		assert(MemOp::Aligned<BLOCK_SIZE>(address));
 
 		Block*& block = GetBlock(address);
 		delete block;
@@ -236,8 +237,8 @@ public:
 	/* address, length must be 64kB-aligned */
 	void Unmap(u8* address, u32 length)
 	{
-		assert(aligned<BLOCK_SIZE>(address));
-		assert(aligned<BLOCK_SIZE>(length));
+		assert(MemOp::Aligned<BLOCK_SIZE>(address));
+		assert(MemOp::Aligned<BLOCK_SIZE>(length));
 
 		for (u32 i = 0; i < length; i += BLOCK_SIZE)
 			Unmap(address + i);
@@ -247,9 +248,9 @@ public:
 	void UsePage(u8* address)
 	{
 		//log("ref %08x", address);
-		assert(aligned<PAGE_SIZE>(address));
-		u8* alignedaddress = align<BLOCK_SIZE>(address);
-		u32 page = offset<BLOCK_SIZE>(address) / PAGE_SIZE;
+		assert(MemOp::Aligned<PAGE_SIZE>(address));
+		u8* alignedaddress = MemOp::Align<BLOCK_SIZE>(address);
+		u32 page = MemOp::Offset<BLOCK_SIZE>(address) / PAGE_SIZE;
 
 		bitset<16>& pagemap = GetPageMap(alignedaddress);
 		//log("(refcount is %d)", pagemap.count());
@@ -260,9 +261,9 @@ public:
 	void UnusePage(u8* address)
 	{
 		//log("unref %08x", address);
-		assert(aligned<PAGE_SIZE>(address));
-		u8* alignedaddress = align<BLOCK_SIZE>(address);
-		u32 page = offset<BLOCK_SIZE>(address) / PAGE_SIZE;
+		assert(MemOp::Aligned<PAGE_SIZE>(address));
+		u8* alignedaddress = MemOp::Align<BLOCK_SIZE>(address);
+		u32 page = MemOp::Offset<BLOCK_SIZE>(address) / PAGE_SIZE;
 
 		bitset<16>& pagemap = GetPageMap(alignedaddress);
 		pagemap[page] = false;
@@ -303,9 +304,9 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 {
 	RAIILock locked;
 
-	if (!aligned<PAGE_SIZE>(addr))
+	if (!MemOp::Aligned<PAGE_SIZE>(addr))
 		throw EINVAL;
-	if (!aligned<PAGE_SIZE>(offset))
+	if (!MemOp::Aligned<PAGE_SIZE>(offset))
 		throw EINVAL;
 
 	if (prot & LINUX_PROT_SEM)
@@ -366,15 +367,16 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 		 */
 
 		u8* loadaddr = addr;
-		if (aligned<BLOCK_SIZE>(addr) && aligned<BLOCK_SIZE>(offset))
+		if (MemOp::Aligned<BLOCK_SIZE>(addr) && MemOp::Aligned<BLOCK_SIZE>(offset))
 		{
 #if defined VERBOSE
 			log("aligned!");
 #endif
 			/* ...although remember we can only mmap() whole blocks. */
 
-			u32 alignedlen = align<BLOCK_SIZE>(len);
+			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(len);
 
+			//w = true; // FIXME: all memory is writeable as we may have to patch it.
 			blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
 
 			/* The rest gets loaded into a fragmented block. */
@@ -410,13 +412,13 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, u32 fd, u32 offset)
 
 void do_munmap(u8* addr, u32 len)
 {
-	if (aligned<BLOCK_SIZE>(addr))
+	if (MemOp::Aligned<BLOCK_SIZE>(addr))
 	{
 #if defined VERBOSE
 		log("unmapping aligned area %08x+%08x", addr, len);
 #endif
 
-		u32 alignedlen = align<BLOCK_SIZE>(len);
+		u32 alignedlen = MemOp::Align<BLOCK_SIZE>(len);
 
 		blockstore.Unmap(addr, alignedlen);
 		addr += alignedlen;
