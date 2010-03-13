@@ -13,6 +13,11 @@
 static u_int8_t* brkbuf = NULL;
 static u_int8_t* pos;
 
+void ClearBrk()
+{
+	pos = brkbuf;
+}
+
 SYSCALL(sys_brk)
 {
 	RAIILock locked;
