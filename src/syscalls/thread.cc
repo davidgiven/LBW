@@ -45,8 +45,7 @@ struct linux_user_desc {
 	unsigned int  useable:1;
 };
 
-static pthread_mutex_t tlsmutex = PTHREAD_MUTEX_INITIALIZER;
-
+#if 0
 typedef u_int32_t DWORD;
 typedef u_int32_t ULONG;
 typedef u_int16_t WORD;
@@ -186,6 +185,7 @@ display_selector (LDT_ENTRY& info)
 	log ("Byte granular.\n");
       return 1;
 }
+#endif
 
 static bool try_perversion(Registers& regs, int offset)
 {
@@ -203,6 +203,7 @@ int32_t sys_set_thread_area(Registers& regs)
 	Arguments& arg = regs.arg;
 	struct linux_user_desc& u = *(struct linux_user_desc*) arg.a0.p;
 
+#if 0
 #if 0
 	log("  entry_number = %d", u.entry_number);
 	log("  base_addr = %08x", u.base_addr);
@@ -280,23 +281,25 @@ int32_t sys_set_thread_area(Registers& regs)
 	u_int32_t r = write_ldt(u.entry_number, ldt);
 	if (r)
 		return -EINVAL;
+#endif
 
+	u.entry_number = 10;
 	if (try_perversion(regs, 48) ||
 		try_perversion(regs, 18) ||
-		try_perversion(regs, 28))
+		try_perversion(regs, 28) ||
+		try_perversion(regs, 62))
 	{
 		u_int16_t fs;
 		asm volatile ("mov %%fs, %w0" : "=r" (fs));
 
 		u_int16_t gs = (u.entry_number << 3) | 7;
-		log("GS %04x now pointing at linear %08x", gs, u.base_addr);
+		//log("GS %04x now pointing at linear %08x", gs, u.base_addr);
 		SetGS(gs, (void*) u.base_addr);
 		//DumpMemory(u.base_addr, 32);
 	}
 	else
 	{
 		DumpMemory(regs.eip, 128);
-		sleep(-1);
 		error("unable to pervert GDT selector load; check code at %08x", regs.eip);
 	}
 
