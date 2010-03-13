@@ -181,7 +181,9 @@ int main(int argc, const char* argv[], const char* environ[])
 	add_std_fd(1);
 	add_std_fd(2);
 
-	StartMonitor();
+	InstallExceptionHandler();
+
+	//StartMonitor();
 	Exec(argv[0], argv, environ);
 	return 0;
 }

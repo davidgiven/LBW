@@ -12,7 +12,7 @@ HOME = os.getenv("HOME")
 CBUILDFLAGS = {
 	'-Wall',
 	'-Wno-multichar',
-	--'-Os',
+	'-O3',
 	'-g',
 	'-fomit-frame-pointer'
 }
@@ -38,10 +38,9 @@ CLINKFLAGS = {
 lbw = cxxprogram {
 	cxxfile "src/main.cc",
 	cxxfile "src/utils.cc",
-	cxxfile "src/monitor.cc",
+	cxxfile "src/ehandler.cc",
 	cxxfile "src/linux_errno.cc",
 	cxxfile "src/Exception.cc",
-	cxxfile "src/gs.cc",
 	cxxfile "src/user.cc",
 	cxxfile "src/elfloader/elfloader.cc",
 	cxxfile "src/filesystem/FD.cc",

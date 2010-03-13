@@ -45,7 +45,9 @@ SYSCALL(stub32_fork)
 	{
 		case 0: /* child */
 			InitProcess();
-			StartMonitor();
+			InstallExceptionHandler();
+			//error("fork() needs work");
+			//StartMonitor();
 			break;
 
 		case -1: /* error */
