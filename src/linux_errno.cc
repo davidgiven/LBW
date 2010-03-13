@@ -10,6 +10,7 @@ int ErrnoI2L(int e)
 	switch (e)
 	{
 		case EBADF:           return LINUX_EBADF;
+		case ECHILD:          return LINUX_ECHILD;
 		case EEXIST:          return LINUX_EEXIST;
 		case EFAULT:          return LINUX_EFAULT;
 		case EINVAL:          return LINUX_EINVAL;
@@ -23,6 +24,7 @@ int ErrnoI2L(int e)
 		case ENXIO:           return LINUX_ENXIO;
 		case EOPNOTSUPP:      return LINUX_EOPNOTSUPP;
 		case EPERM:           return LINUX_EPERM;
+		case EPIPE:           return LINUX_EPIPE;
 		case EPROTONOSUPPORT: return LINUX_EPROTONOSUPPORT;
 		case EPROTOTYPE:      return LINUX_EPROTOTYPE;
 		case ESRCH:           return LINUX_ESRCH;
