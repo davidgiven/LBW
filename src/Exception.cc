@@ -4,6 +4,7 @@
  */
 
 #include "globals.h"
+#include "Exception.h"
 #include <errno.h>
 
 Exception::Exception(const string& message):
