@@ -313,3 +313,21 @@ SYSCALL(sys_tgkill)
 	return SysError(result);
 }
 
+
+SYSCALL(sys32_kill)
+{
+	pid_t pid = arg.a0.u;
+	int lsig = arg.a1.s;
+
+	int isig = convert_signal_l2i(lsig);
+	if (isig == -1)
+	{
+		log("signal %d not supported on Interix", lsig);
+		return -LINUX_EINVAL;
+	}
+
+	int result = kill(pid, isig);
+	if (result == -1)
+		throw errno;
+	return 0;
+}

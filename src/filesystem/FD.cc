@@ -161,6 +161,11 @@ int64_t FD::Seek(int whence, int64_t offset)
 	throw EINVAL;
 }
 
+void FD::Truncate(int64_t offset)
+{
+	throw EINVAL;
+}
+
 void FD::Fstat(struct stat& ls)
 {
 	throw EINVAL;

@@ -53,7 +53,7 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 		case LINUX_F_SETFL:
 		{
 			int iflags = FileFlagsL2I(argument);
-			log("setting flags for realfd %d to %x", _realfd, iflags);
+			//log("setting flags for realfd %d to %x", _realfd, iflags);
 			int result = fcntl(_realfd, F_SETFL, iflags);
 			return SysError(result);
 		}

@@ -57,3 +57,25 @@ SYSCALL(compat_sys_clock_gettime)
 
 	return 0;
 }
+
+SYSCALL(compat_sys_clock_getres)
+{
+	int which_clock = arg.a0.s;
+	struct timespec& lt = *(struct timespec*) arg.a1.p;
+
+	switch (which_clock)
+	{
+		case LINUX_CLOCK_REALTIME:
+		case LINUX_CLOCK_MONOTONIC:
+		{
+			lt.tv_sec = 0;
+			lt.tv_nsec = 1000000000LL / CLOCKS_PER_SEC;
+			break;
+		}
+
+		default:
+			throw EINVAL;
+	}
+
+	return 0;
+}

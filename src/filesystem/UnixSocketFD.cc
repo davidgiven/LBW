@@ -27,8 +27,8 @@ void UnixSocketFD::Open(int family, int type, int protocol)
 
 void UnixSocketFD::Connect(const struct sockaddr* sa, int addrlen)
 {
-	log("connect:");
-	DumpMemory(sa, addrlen);
+	//log("connect:");
+	//DumpMemory(sa, addrlen);
 
 	if (sa->sa_family != AF_UNIX)
 		throw EAFNOSUPPORT;
@@ -64,7 +64,7 @@ void UnixSocketFD::Connect(const struct sockaddr* sa, int addrlen)
 
 void UnixSocketFD::Bind(const struct sockaddr* sa, int addrlen)
 {
-	log("bind:");
-	DumpMemory(sa, addrlen);
+	//log("bind:");
+	//DumpMemory(sa, addrlen);
 	throw ENOSYS;
 }

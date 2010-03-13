@@ -35,6 +35,7 @@ public:
 	static void Link(const string& from, const string& to);
 	static void Unlink(const string& path);
 	static void Symlink(const string& from, const string& to);
+	static void Utime(const string& path, const struct utimbuf& ub);
 };
 
 #endif

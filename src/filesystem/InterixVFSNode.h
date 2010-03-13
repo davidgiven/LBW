@@ -36,6 +36,7 @@ public:
 	void Link(const string& from, VFSNode* other, const string& to);
 	void Unlink(const string& name);
 	void Symlink(const string& name, const string& target);
+	void Utime(const string& name, const struct utimbuf& ub);
 
 private:
 	void setup();

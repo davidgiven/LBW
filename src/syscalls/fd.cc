@@ -174,6 +174,17 @@ SYSCALL(compat_sys_ioctl)
 }
 
 /* whence values are compatible. */
+SYSCALL(sys32_lseek)
+{
+	unsigned int fd = arg.a0.u;
+	int32_t offset = arg.a1.s;
+	unsigned int whence = arg.a2.u;
+
+	Ref<FD> fdo = FD::Get(fd);
+	return fdo->Seek(offset, whence);
+}
+
+/* whence values are compatible. */
 SYSCALL(sys_llseek)
 {
 	unsigned int fd = arg.a0.u;
@@ -183,6 +194,16 @@ SYSCALL(sys_llseek)
 
 	Ref<FD> fdo = FD::Get(fd);
 	*result = fdo->Seek(offset, whence);
+	return 0;
+}
+
+SYSCALL(sys_ftruncate)
+{
+	int fd = arg.a0.u;
+	u32 length = arg.a1.u;
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Truncate(length);
 	return 0;
 }
 
@@ -214,24 +235,4 @@ SYSCALL(compat_sys_getdents)
 		return -LINUX_ENOTDIR;
 
 	return dirfdo->GetDents(dirent, count);
-}
-
-SYSCALL(sys_getxattr)
-{
-	const char* path = (const char*) arg.a0.p;
-	const char* name = (const char*) arg.a1.p;
-	void* value = arg.a2.p;
-	size_t size = arg.a3.u;
-
-	throw EOPNOTSUPP;
-}
-
-SYSCALL(sys_lgetxattr)
-{
-	const char* path = (const char*) arg.a0.p;
-	const char* name = (const char*) arg.a1.p;
-	void* value = arg.a2.p;
-	size_t size = arg.a3.u;
-
-	throw EOPNOTSUPP;
 }

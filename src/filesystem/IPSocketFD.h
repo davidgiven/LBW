@@ -20,6 +20,7 @@ public:
 
 	virtual void Connect(const struct sockaddr* addr, int addrlen);
 	virtual void Bind(const struct sockaddr* addr, int addrlen);
+	virtual void GetSockname(struct sockaddr* addr, int* namelen);
 };
 
 #endif

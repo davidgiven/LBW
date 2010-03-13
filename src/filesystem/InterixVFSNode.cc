@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "filesystem/RawFD.h"
 #include "filesystem/InterixVFSNode.h"
+#include <utime.h>
 #include <typeinfo>
 
 InterixVFSNode::InterixVFSNode(VFSNode* parent, const string& name, const string& path):
@@ -229,3 +230,13 @@ void InterixVFSNode::Symlink(const string& name, const string& target)
 		throw errno;
 }
 
+
+void InterixVFSNode::Utime(const string& name, const struct utimbuf& ub)
+{
+	RAIILock locked;
+	setup(name);
+
+	int i = utime(name.c_str(), &ub);
+	if (i == -1)
+		throw errno;
+}

@@ -179,7 +179,6 @@ static int do_socket(int protofamily, int type, int protocol)
 {
 	int itype = type & 0xff;
 
-	log("do_socket(%d)", protofamily);
 	Ref<SocketFD> ref;
 	if (protofamily == AF_INET)
 		ref = new IPSocketFD();
@@ -218,13 +217,33 @@ static int do_connect(int fd, const struct sockaddr* addr, int addrlen)
 static int do_setsockopt(int fd, int level, int optname, const void* optval,
 		int optlen)
 {
-	log("setsockopt(%d, %d, %d, %p, %p)", fd, level, optname, optval, optlen);
+//	log("setsockopt(%d, %d, %d, %p, %p)", fd, level, optname, optval, optlen);
 	int ilevel, ioptname;
 	convert_sockopt(level, optname, ilevel, ioptname);
 
 	Ref<FD> ref = FD::Get(fd);
 	SocketFD* fdo = SocketFD::Cast(ref);
 	fdo->SetSockopt(ilevel, ioptname, optval, optlen);
+	return 0;
+}
+
+static int do_getsockopt(int fd, int level, int optname, void* optval,
+		int* optlen)
+{
+	int ilevel, ioptname;
+	convert_sockopt(level, optname, ilevel, ioptname);
+
+	Ref<FD> ref = FD::Get(fd);
+	SocketFD* fdo = SocketFD::Cast(ref);
+	fdo->GetSockopt(ilevel, ioptname, optval, optlen);
+	return 0;
+}
+
+static int do_getsockname(int fd, struct sockaddr* sa, int* namelen)
+{
+	Ref<FD> ref = FD::Get(fd);
+	SocketFD* fdo = SocketFD::Cast(ref);
+	fdo->GetSockname(sa, namelen);
 	return 0;
 }
 
@@ -235,6 +254,15 @@ static int do_send(int fd, const void *msg, size_t len, int flags)
 	Ref<FD> ref = FD::Get(fd);
 	SocketFD* fdo = SocketFD::Cast(ref);
 	return fdo->Send(msg, len, iflags);
+}
+
+static int do_recv(int fd, void *msg, size_t len, int flags)
+{
+	int iflags = convert_msg_flags(flags);
+
+	Ref<FD> ref = FD::Get(fd);
+	SocketFD* fdo = SocketFD::Cast(ref);
+	return fdo->Recv(msg, len, iflags);
 }
 
 static int do_recvfrom(int fd, void *buf, size_t len, int flags,
@@ -255,7 +283,6 @@ SYSCALL(compat_sys_socketcall)
 	switch (call)
 	{
 		case LINUX_SYS_SOCKET:
-			DumpMemory(args, 3*4);
 			return do_socket(args[0], args[1], args[2]);
 
 		case LINUX_SYS_BIND:
@@ -270,8 +297,20 @@ SYSCALL(compat_sys_socketcall)
 			return do_setsockopt(args[0], args[1], args[2],
 					(const void*) args[3], args[4]);
 
+		case LINUX_SYS_GETSOCKOPT:
+			return do_getsockopt(args[0], args[1], args[2],
+					(void*) args[3], (int*) args[4]);
+
+		case LINUX_SYS_GETSOCKNAME:
+			return do_getsockname(args[0], (struct sockaddr*) args[1],
+					(int*) args[2]);
+
 		case LINUX_SYS_SEND:
 			return do_send(args[0], (const void*) args[1], args[2],
+					args[3]);
+
+		case LINUX_SYS_RECV:
+			return do_recv(args[0], (void*) args[1], args[2],
 					args[3]);
 
 		case LINUX_SYS_RECVFROM:

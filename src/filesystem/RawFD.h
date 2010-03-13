@@ -25,6 +25,7 @@ public:
 	int Read(void* buffer, size_t size);
 	int Write(const void* buffer, size_t size);
 	int64_t Seek(int whence, int64_t offset);
+	virtual void Truncate(int64_t length);
 
 	void Fstat(struct stat& st);
 

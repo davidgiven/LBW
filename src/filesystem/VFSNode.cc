@@ -213,3 +213,8 @@ void VFSNode::Symlink(const string& name, const string& target)
 	throw EINVAL;
 }
 
+void VFSNode::Utime(const string& name, const struct utimbuf& ub)
+{
+	assert(false);
+	throw EINVAL;
+}

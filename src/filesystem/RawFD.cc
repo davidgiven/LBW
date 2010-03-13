@@ -72,6 +72,13 @@ int64_t RawFD::Seek(int whence, int64_t offset)
 	return i;
 }
 
+void RawFD::Truncate(int64_t offset)
+{
+	int i = ftruncate(_realfd, offset);
+	if (i == -1)
+		throw errno;
+}
+
 void RawFD::Fstat(struct stat& st)
 {
 	int result = fstat(_realfd, &st);

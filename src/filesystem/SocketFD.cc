@@ -49,10 +49,33 @@ void SocketFD::SetSockopt(int level, int optname, const void* option,
 		throw errno;
 }
 
+void SocketFD::GetSockopt(int level, int optname, void* option,
+		int* optlen)
+{
+	int fd = GetRealFD();
+	int i = getsockopt(fd, level, optname, option, optlen);
+	if (i == -1)
+		throw errno;
+}
+
+void SocketFD::GetSockname(struct sockaddr* sa, int* namelen)
+{
+	throw EINVAL;
+}
+
 int SocketFD::Send(const void* msg, size_t len, int flags)
 {
 	int fd = GetRealFD();
 	int i = send(fd, msg, len, flags);
+	if (i == -1)
+		throw errno;
+	return i;
+}
+
+int SocketFD::Recv(void* msg, size_t len, int flags)
+{
+	int fd = GetRealFD();
+	int i = recv(fd, msg, len, flags);
 	if (i == -1)
 		throw errno;
 	return i;

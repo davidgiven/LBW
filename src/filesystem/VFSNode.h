@@ -52,6 +52,7 @@ public:
 	virtual void Link(const string& from, VFSNode* tonode, const string& to);
 	virtual void Unlink(const string& name);
 	virtual void Symlink(const string& name, const string& target);
+	virtual void Utime(const string& name, const struct utimbuf& ub);
 
 	void Resolve(const string& path, Ref<VFSNode>& node, string& leaf,
 			bool followlink);

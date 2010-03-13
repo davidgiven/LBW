@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "syscalls.h"
 
-// #define VERBOSE
+//#define VERBOSE
 
 extern "C" int32_t Linux_MCE_Handler(Registers& regs)
 	__attribute__ ((regparm (1)))
@@ -57,9 +57,6 @@ static void printregs(Registers& regs)
 
 int32_t Linux_MCE_Handler(Registers& regs)
 {
-	//printregs(regs);
-	regs.eip += 2; /* don't retry the int when we return */
-
 #if defined VERBOSE
 	log("syscall #%d %s(%08x, %08x, %08x, %08x, %08x, %08x) from %08x", regs.arg.syscall, SyscallNames[regs.arg.syscall],
 			regs.arg.a0.u, regs.arg.a1.u, regs.arg.a2.u,
@@ -89,10 +86,13 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 12, sys_chdir);
 		CALL_SYSCALL( 13, compat_sys_time);
 		CALL_SYSCALL( 15, sys_chmod);
+		CALL_SYSCALL( 19, sys32_lseek);
 		CALL_SYSCALL( 20, sys_getpid);
 		CALL_SYSCALL( 24, sys_getuid16);
+		CALL_SYSCALL( 30, compat_sys_utime);
 		CALL_SYSCALL( 33, sys_access);
 		CALL_SYSCALL( 36, sys_sync);
+		CALL_SYSCALL( 37, sys32_kill);
 		CALL_SYSCALL( 38, sys_rename);
 		CALL_SYSCALL( 39, sys_mkdir);
 		CALL_SYSCALL( 40, sys_rmdir);
@@ -114,6 +114,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 85, sys_readlink);
 		CALL_SYSCALL( 90, sys32_mmap);
 		CALL_SYSCALL( 91, sys_unmap);
+		CALL_SYSCALL( 93, sys_ftruncate);
 		CALL_SYSCALL( 99, compat_sys_statfs);
 		CALL_SYSCALL(102, compat_sys_socketcall);
 		CALL_SYSCALL(108, compat_sys_newfstat);
@@ -150,6 +151,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(252, sys_exit_group);
 		CALL_SYSCALL(258, sys_set_tid_address);
 		CALL_SYSCALL(265, compat_sys_clock_gettime);
+		CALL_SYSCALL(266, compat_sys_clock_getres);
 		CALL_SYSCALL(268, compat_sys_statfs64);
 		CALL_SYSCALL(270, sys_tgkill);
 		CALL_SYSCALL(311, compat_sys_set_robust_list);

@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <dirent.h>
+#include <utime.h>
 #include <map>
 
 static void copystring1(const string& s, char* buffer, size_t len)
@@ -152,4 +153,34 @@ SYSCALL(sys_symlink)
 
 	VFS::Symlink(path1, path2);
 	return 0;
+}
+
+/* compat_utimbuf is compatible with Interix. */
+SYSCALL(compat_sys_utime)
+{
+	const char* path = (const char*) arg.a0.p;
+	struct utimbuf& ub = *(struct utimbuf*) arg.a1.p;
+
+	VFS::Utime(path, ub);
+	return 0;
+}
+
+SYSCALL(sys_getxattr)
+{
+	const char* path = (const char*) arg.a0.p;
+	const char* name = (const char*) arg.a1.p;
+	void* value = arg.a2.p;
+	size_t size = arg.a3.u;
+
+	throw EOPNOTSUPP;
+}
+
+SYSCALL(sys_lgetxattr)
+{
+	const char* path = (const char*) arg.a0.p;
+	const char* name = (const char*) arg.a1.p;
+	void* value = arg.a2.p;
+	size_t size = arg.a3.u;
+
+	throw EOPNOTSUPP;
 }

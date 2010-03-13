@@ -189,3 +189,13 @@ void VFS::Symlink(const string& from, const string& to)
 
 	node->Symlink(leaf, to);
 }
+
+void VFS::Utime(const string& from, const struct utimbuf& ub)
+{
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(from, node, leaf, false);
+
+	node->Utime(leaf, ub);
+}
+
