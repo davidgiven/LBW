@@ -140,6 +140,7 @@ SYSCALL(compat_sys_select)
 	FD_ZERO(&writes);
 	FD_ZERO(&excepts);
 
+	int maxfd = 0;
 	for (int i = 0; i < size; i++)
 	{
 		bool r = lreads ? FD_ISSET(i, lreads) : false;
@@ -151,16 +152,40 @@ SYSCALL(compat_sys_select)
 			FD_SET(i, &interested);
 
 			int realfd = FD::Get(i)->GetRealFD();
+
+#if 0
+			{
+				int fd = realfd;
+				FD_ZERO(&reads); FD_SET(fd, &reads);
+				FD_ZERO(&writes); FD_SET(fd, &writes);
+				FD_ZERO(&excepts); FD_SET(fd, &excepts);
+				select(fd+1, &reads, &writes, &excepts, NULL);
+				log("fd %d state is now %c%c%c", fd,
+						FD_ISSET(fd, &reads) ? 'r' : '.',
+						FD_ISSET(fd, &writes) ? 'w' : '.',
+						FD_ISSET(fd, &excepts) ? 'x' : '.');
+			}
+#endif
+
+#if 0
+			log("realfd %d check for %c%c%c", realfd, r ? 'r' : '.',
+					w ? 'w' : '.', x ? 'x' : '.');
+#endif
 			if (r)
 				FD_SET(realfd, &reads);
 			if (w)
 				FD_SET(realfd, &writes);
 			if (x)
 				FD_SET(realfd, &excepts);
+
+			if (realfd > maxfd)
+				maxfd = realfd;
 		}
 	}
 
-	int result = select(size, &reads, &writes, &excepts, tv);
+//	log("tv_sec = %ld tv_usec=%ld", tv->tv_sec, tv->tv_usec);
+	int result = select(maxfd+1, &reads, &writes, &excepts, tv);
+//	log("select returned %d", result);
 	if (result == -1)
 		throw errno;
 
@@ -169,6 +194,13 @@ SYSCALL(compat_sys_select)
 		if (FD_ISSET(i, &interested))
 		{
 			int realfd = FD::Get(i)->GetRealFD();
+
+#if 0
+			log("realfd %d status is %c%c%c", realfd,
+					FD_ISSET(realfd, &reads) ? 'r' : '.',
+					FD_ISSET(realfd, &writes) ? 'w' : '.',
+					FD_ISSET(realfd, &excepts) ? 'x' : '.');
+#endif
 
 			if (lreads)
 			{
