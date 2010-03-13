@@ -6,7 +6,9 @@
 #include "globals.h"
 #include "elfloader/ElfLoader.h"
 #include "syscalls/mmap.h"
+#include "syscalls/memory.h"
 #include "filesystem/FD.h"
+#include "MemOp.h"
 #include <pthread.h>
 #include <vector>
 
@@ -42,6 +44,7 @@ void InitProcess()
 void FlushExecutable()
 {
 	UnmapAll();
+	ClearBrk();
 	FD::Flush();
 }
 
@@ -119,7 +122,9 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 		if (interpreter)
 		{
 			interpreter->Load();
+			executable->Load();
 			entrypoint = interpreter->GetEntrypoint();
+			log("main executable entrypoint %08x", executable->GetEntrypoint());
 		}
 		else
 		{
@@ -127,11 +132,9 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 			entrypoint = executable->GetEntrypoint();
 		}
 
-		delete newExecutable;
-
 		InitProcess();
 
-		int auxsize = 5*2 + 1;
+		int auxsize = 7*2 + 1;
 
 		/* Count the environment and argument array, and copy the data out of
 		 * the
@@ -158,9 +161,19 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 		calldata[index++] = (const char*) executable->GetEntrypoint();
 		calldata[index++] = (const char*) AT_PAGESZ;
 		calldata[index++] = (const char*) 0x1000;
+#if 0
+		calldata[index++] = (const char*) AT_BASE;
+		calldata[index++] = (const char*) (interpreter ? interpreter->GetLoadAddress() : NULL);
+		calldata[index++] = (const char*) AT_FLAGS;
+		calldata[index++] = (const char*) 0;
+#endif
 		calldata[index++] = (const char*) AT_NULL;
 
+		log("executable phdrs at %08x", &executable->GetProgramHeader(0));
 		log("running code now");
+		//getchar(); asm volatile ("int $3");
+
+		//MemOp::Store(0xf4, 0x7ff62237);
 		asm volatile (
 			"mov %1, %%esp; " // set stack to startup data
 			"push %0; " // argc

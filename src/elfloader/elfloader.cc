@@ -8,6 +8,7 @@
 #include "filesystem/VFS.h"
 #include "syscalls/mmap.h"
 #include "ElfLoader.h"
+#include "MemOp.h"
 #include "binfmts.h"
 #include "a.out.h"
 #include <sys/mman.h>
@@ -742,6 +743,9 @@ void ElfLoader::Open(const string& filename)
 			log("using interpreter %s", _interpreter.c_str());
 		}
 	}
+
+	_entrypoint = _elfhdr.e_entry;
+	_loadaddress = 0;
 }
 
 void ElfLoader::Close()
@@ -749,6 +753,17 @@ void ElfLoader::Close()
 	log("_phdr=%p", _phdr);
 	delete [] _phdr;
 	_entrypoint = 0;
+}
+
+const struct elf_phdr& ElfLoader::GetProgramHeader(int n) const
+{
+	const struct elf_phdr* phdr;
+	if (_loadaddress)
+		phdr = (const struct elf_phdr*) (_loadaddress + GetElfHeader().e_phoff);
+	else
+		phdr = _phdr;
+
+	return phdr[n];
 }
 
 void ElfLoader::Load()
@@ -779,18 +794,19 @@ void ElfLoader::Load()
 
 	log("min addr = %08lx, max addr = %08lx", minaddr, maxaddr);
 
-#if 1
 	/* If this is a dynamic executable, allocate an address range for it. */
 
-	u32 loadaddress = 0;
+	u32 loadoffset = 0;
+	loadoffset = 0;
 	if (_elfhdr.e_type == ET_DYN)
 	{
 		assert(minaddr == 0);
-		loadaddress = do_mmap(NULL, maxaddr,
+		loadoffset = do_mmap(NULL, maxaddr,
 				LINUX_PROT_READ | LINUX_PROT_WRITE | LINUX_PROT_EXEC,
 				LINUX_MAP_PRIVATE | LINUX_MAP_ANONYMOUS,
 				_fd, 0);
-		do_munmap((u8*) loadaddress, maxaddr);
+		do_munmap((u8*) loadoffset, maxaddr);
+		log("actual load offset is %08x", loadoffset);
 	}
 
 	/* Load the executable into memory. */
@@ -808,15 +824,17 @@ void ElfLoader::Load()
 			if (ph.p_flags & PF_X)
 				prot |= LINUX_PROT_EXEC;
 
-			u32 addr = align<0x1000>(loadaddress + ph.p_vaddr);
-			u32 mlen = ph.p_memsz + offset<0x1000>(ph.p_vaddr);
-			u32 flen = ph.p_filesz + offset<0x1000>(ph.p_vaddr);
-			u32 off = ph.p_offset - offset<0x1000>(ph.p_vaddr);
+			log("raw area %08x-%08x", loadoffset + ph.p_vaddr, loadoffset + ph.p_vaddr + ph.p_memsz);
+			u32 addr = MemOp::Align<0x1000>(loadoffset + ph.p_vaddr);
+			u32 mlen = ph.p_memsz + MemOp::Offset<0x1000>(ph.p_vaddr);
+			u32 flen = ph.p_filesz + MemOp::Offset<0x1000>(ph.p_vaddr);
+			u32 off = ph.p_offset - MemOp::Offset<0x1000>(ph.p_vaddr);
 
 			/* Ensure the entire area contains writeable memory. */
 
 			if (prot & LINUX_PROT_WRITE)
 			{
+				log("writeable area %08x-%08x", addr, addr+mlen);
 				do_mmap((u8*) addr, mlen, prot,
 						LINUX_MAP_PRIVATE | LINUX_MAP_FIXED | LINUX_MAP_ANONYMOUS,
 						_fd, off);
@@ -824,106 +842,25 @@ void ElfLoader::Load()
 
 			/* Load the actual data. */
 
+			log("readable area %08x-%08x", addr, addr+flen);
 			do_mmap((u8*) addr, flen, prot,
 					LINUX_MAP_PRIVATE | LINUX_MAP_FIXED,
 					_fd, off);
+
+			/* Wipe any remaining data, if necessary --- we may have loaded a
+			 * page too many.
+			 */
+
+			if (prot & LINUX_PROT_WRITE)
+			{
+				log("wiping from %08x-%08x", addr+flen, addr+mlen);
+				memset((u8*) (addr+flen), 0, MemOp::AlignUp<0x1000>(mlen) - flen);
+			}
+			DumpMemory(addr+flen-64, 128);
 		}
 	}
 
-	_entrypoint = _elfhdr.e_entry + loadaddress;
+	_entrypoint = _elfhdr.e_entry + loadoffset;
+	_loadaddress = loadoffset + minaddr;
 	log("entrypoint is %08x", _entrypoint);
-
-#else
-	minaddr = align<0x10000>(minaddr);
-	maxaddr = alignup<0x10000>(maxaddr);
-
-	int fd = _fd->GetRealFD();
-	u32 loadoffset = 0;
-	switch (_elfhdr.e_type)
-	{
-		case ET_EXEC:
-		{
-			/* Magic executable loading code.
-			 *
-			 * The Linux executable base address is 32kB aligned. Unfortunately,
-			 * Interix' mmap() will only let us allocate blocks that are 64kB
-			 * aligned. Which means we have to allocate real memory and read the
-			 * executable into RAM rather than letting the VM deal with it. This
-			 * is a pain.
-			 */
-
-			/* Now, claim the fixed range of memory from the system. */
-
-			void* result = mmap((void*)minaddr, maxaddr - minaddr,
-					PROT_READ | PROT_WRITE | PROT_EXEC,
-					MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
-					-1, 0);
-			if (result == MAP_FAILED)
-				throw ENOMEM;
-
-			/* Load the executable data. */
-
-			for (size_t i=0; i<GetNumProgramHeaders(); i++)
-			{
-				const struct elf_phdr& ph = GetProgramHeader(i);
-				if (ph.p_type == PT_LOAD)
-				{
-					if (ph.p_filesz > 0)
-					{
-				    	log("area(%08x to %08x %08x)", ph.p_vaddr,
-				    			ph.p_vaddr+ph.p_memsz, ph.p_offset);
-						int i = pread(fd, (void*)ph.p_vaddr, ph.p_filesz,
-								ph.p_offset);
-						if (i == -1)
-							throw EIO;
-					}
-				}
-			}
-
-			_entrypoint = _elfhdr.e_entry;
-			break;
-		}
-
-		case ET_DYN:
-		{
-			/* Dynamically loaded executable. These get loaded into an
-			 * arbitrary block of memory using the memory mapper.
-			 */
-
-			/* Now, claim the fixed range of memory from the system. */
-
-			u32 address = (u32) mmap(NULL, maxaddr - minaddr,
-					PROT_READ | PROT_WRITE | PROT_EXEC,
-					MAP_PRIVATE | MAP_ANONYMOUS,
-					-1, 0);
-			if (address == (u32)MAP_FAILED)
-				throw ENOMEM;
-			log("loading dynamic executable at %08x", address);
-
-			/* Load the executable data. */
-
-			for (size_t i=0; i<GetNumProgramHeaders(); i++)
-			{
-				const struct elf_phdr& ph = GetProgramHeader(i);
-				if (ph.p_type == PT_LOAD)
-				{
-					if (ph.p_filesz > 0)
-					{
-						int i = pread(fd, (void*)(ph.p_vaddr + address), ph.p_filesz,
-								ph.p_offset);
-						if (i == -1)
-							throw EIO;
-					}
-				}
-			}
-
-			_entrypoint = _elfhdr.e_entry + address;
-			log("entrypoint is %08x", _entrypoint);
-			break;
-		}
-
-		default:
-			error("not a supported ELF type! %d", _elfhdr.e_type);
-	}
-#endif
 }

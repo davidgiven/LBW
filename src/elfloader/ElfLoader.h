@@ -22,12 +22,13 @@ public:
 
 public:
 	const struct elfhdr& GetElfHeader() const { return _elfhdr; }
-	const struct elf_phdr& GetProgramHeader(int n) const { return _phdr[n]; }
+	const struct elf_phdr& GetProgramHeader(int n) const;
 	size_t GetNumProgramHeaders() const { return _elfhdr.e_phnum; }
 	size_t GetProgramHeaderSize() const { return _elfhdr.e_phentsize; }
 	void* GetEntrypoint() const { return (void*) _entrypoint; }
 	bool HasInterpreter() const { return !_interpreter.empty(); }
 	const string& GetInterpreter() const { return _interpreter; }
+	u32 GetLoadAddress() const { return _loadaddress; }
 
 private:
 	Ref<FD> _fd;
@@ -35,6 +36,7 @@ private:
 	struct elf_phdr* _phdr;
 	string _interpreter;
 	u32 _entrypoint;
+	u32 _loadaddress;
 };
 
 #endif
