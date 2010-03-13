@@ -344,6 +344,7 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			}
 		}
 
+		case 0x0b: // or Gv, Ev
 		case 0x03: // add Gv, Ev
 		case 0x33: // xor Gv, Ev
 		case 0x87: // xchg Ev, Gv
