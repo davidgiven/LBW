@@ -9,12 +9,15 @@ int ErrnoI2L(int e)
 {
 	switch (e)
 	{
+		case EAGAIN:          return LINUX_EAGAIN;
 		case EBADF:           return LINUX_EBADF;
 		case ECHILD:          return LINUX_ECHILD;
 		case EEXIST:          return LINUX_EEXIST;
 		case EFAULT:          return LINUX_EFAULT;
+		case EINPROGRESS:     return LINUX_EINPROGRESS;
 		case EINVAL:          return LINUX_EINVAL;
 		case EIO:             return LINUX_EIO;
+		case EISCONN:         return LINUX_EISCONN;
 		case EISDIR:          return LINUX_EISDIR;
 		case ENOENT:          return LINUX_ENOENT;
 		case ENOEXEC:         return LINUX_ENOEXEC;
@@ -27,8 +30,10 @@ int ErrnoI2L(int e)
 		case EPIPE:           return LINUX_EPIPE;
 		case EPROTONOSUPPORT: return LINUX_EPROTONOSUPPORT;
 		case EPROTOTYPE:      return LINUX_EPROTOTYPE;
+		case ESPIPE:          return LINUX_ESPIPE;
 		case ESRCH:           return LINUX_ESRCH;
 		case ETIMEDOUT:       return LINUX_ETIMEDOUT;
+		case EXDEV:           return LINUX_EXDEV;
 	}
 
 	printf("interix errno %d!\n", e);
