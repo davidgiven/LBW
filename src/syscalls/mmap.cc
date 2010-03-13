@@ -207,7 +207,9 @@ public:
 			 * again.
 			 */
 
+#if defined VERBOSE
 			log("converting block at %08x from mapped to fragmented", address);
+#endif
 			u8 copybuffer[BLOCK_SIZE];
 			memcpy(copybuffer, address, BLOCK_SIZE);
 
@@ -376,7 +378,6 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 
 			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(len);
 
-			//w = true; // FIXME: all memory is writeable as we may have to patch it.
 			blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
 
 			/* The rest gets loaded into a fragmented block. */
