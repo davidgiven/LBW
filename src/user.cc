@@ -8,6 +8,7 @@
 #include "syscalls/mmap.h"
 #include "syscalls/memory.h"
 #include "filesystem/FD.h"
+#include "filesystem/VFS.h"
 #include "MemOp.h"
 #include <pthread.h>
 #include <vector>
@@ -19,6 +20,13 @@ static ElfLoader* executable = NULL;
 static ElfLoader* interpreter = NULL;
 static vector<string> arguments;
 static vector<string> environment;
+
+enum
+{
+	UNKNOWN_EXECUTABLE,
+	ELF_EXECUTABLE,
+	INTERIX_EXECUTABLE
+};
 
 /* Used when a new process is started; initialises everything that needs to
  * be done anew for any process. (Such as pthread mutexes and GS.)
@@ -58,10 +66,24 @@ void Unlock()
 	pthread_mutex_unlock(&lock);
 }
 
-void Exec(const string& pathname, const char* argv[], const char* environ[])
+static int probe_executable(const string& filename)
 {
-	log("opening %s", argv[0]);
+	Ref<FD> ref = VFS::OpenFile(filename);
+	int fd = ref->GetRealFD();
 
+	char buffer[4];
+	if (pread(fd, buffer, sizeof(buffer), 0) == -1)
+		return UNKNOWN_EXECUTABLE;
+
+	if (memcmp(buffer, "\x7F" "ELF", 4) == 0)
+		return ELF_EXECUTABLE;
+	if (memcmp(buffer, "MZ", 2) == 0)
+		return INTERIX_EXECUTABLE;
+	return UNKNOWN_EXECUTABLE;
+}
+
+static void elf_exec(const string& pathname, const char* argv[], const char* environ[])
+{
 	int argvsize;
 	int envsize;
 
@@ -205,3 +227,18 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 	}
 }
 
+void Exec(const string& pathname, const char* argv[], const char* environ[])
+{
+	log("opening %s", argv[0]);
+
+	switch (probe_executable(pathname))
+	{
+		case ELF_EXECUTABLE:
+			return elf_exec(pathname, argv, environ);
+
+		case INTERIX_EXECUTABLE:
+			error("don't know how to load Interix executables yet");
+	}
+
+	throw ENOEXEC;
+}
