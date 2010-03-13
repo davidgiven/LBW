@@ -24,8 +24,6 @@ using std::string;
 
 class FD;
 
-#include "Exception.h"
-
 #define PACKED  __attribute__((packed)) __attribute__((aligned(1)))
 
 typedef u_int16_t __u16;
@@ -50,26 +48,6 @@ struct Options_s
 };
 
 extern Options_s Options;
-
-template <int SIZE, typename T> static inline T align(T address)
-{
-	return (T)((u32)address & ~(SIZE-1));
-}
-
-template <int SIZE, typename T> static inline T alignup(T address)
-{
-	return (T)(((u32)address + (SIZE-1)) & ~(SIZE-1));
-}
-
-template <int SIZE, typename T> static inline u32 offset(T address)
-{
-	return (u32)address & (SIZE-1);
-}
-
-template <int SIZE, typename T> static inline bool aligned(T address)
-{
-	return offset<SIZE>(address) == 0;
-}
 
 extern void vwritef(int fd, const char* format, va_list ap);
 extern void writef(int fd, const char* format, ...);
@@ -106,6 +84,7 @@ extern string StringF(const char* format, ...);
 /* User space */
 
 extern void InitProcess();
+extern void InstallExceptionHandler();
 extern void Lock();
 extern void Unlock();
 extern void Exec(const string& pathname, const char* argv[], const char* environ[]);
@@ -121,6 +100,7 @@ public:
 
 extern void InitGSStore();
 extern void SetGS(u_int16_t gs, void* linear);
+extern u32 GetGS();
 
 /* Machine code entry points */
 
