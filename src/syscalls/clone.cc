@@ -64,8 +64,6 @@ SYSCALL(sys32_clone)
 	void* parent_tid = arg.a2.p;
 	void* child_tid = arg.a4.p;
 
-	log("clone flags=%08x newsp=%08x ptid=%p ctid=%p", clone_flags, newsp,
-			parent_tid, child_tid);
 	switch (clone_flags)
 	{
 		case 0x01200011: /* fork, I think */
@@ -88,6 +86,8 @@ SYSCALL(sys32_clone)
 		}
 
 		default:
+			log("clone flags=%08x newsp=%08x ptid=%p ctid=%p", clone_flags, newsp,
+					parent_tid, child_tid);
 			error("unimplemented clone scenario");
 	}
 }

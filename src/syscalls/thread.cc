@@ -83,9 +83,6 @@ SYSCALL(compat_sys_futex)
 	int* uaddr2 = (int*) arg.a4.p;
 	int val3 = arg.a5.s;
 
-	log("op=%02x uaddr=%08x, *uaddr=%08x, val=%08x, timespec=%p, uaddr2=%08x, val3=%08x", op, uaddr, *uaddr, val,
-			timespec, uaddr2, val3);
-
 	int cmd = op & LINUX_FUTEX_CMD_MASK;
 	switch (cmd)
 	{
@@ -101,6 +98,9 @@ SYSCALL(compat_sys_futex)
 			throw EINVAL;
 
 		default:
+			log("op=%02x uaddr=%08x, *uaddr=%08x, val=%08x, timespec=%p, uaddr2=%08x, val3=%08x", op, uaddr, *uaddr, val,
+					timespec, uaddr2, val3);
+
 			error("compat_sys_futex(%x) currently unimplemented", op);
 	}
 

@@ -174,7 +174,9 @@ void ElfLoader::Load()
 		}
 	}
 
+#if defined VERBOSE
 	log("min addr = %08lx, max addr = %08lx", minaddr, maxaddr);
+#endif
 
 	/* If this is a dynamic executable, allocate an address range for it. */
 

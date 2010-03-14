@@ -131,7 +131,6 @@ extern "C" void* __stdcall RtlAddVectoredExceptionHandler(u32 first,
 		VectoredExceptionHandler* handler);
 asm ("_RtlAddVectoredExceptionHandler: jmp _RtlAddVectoredExceptionHandler@8");
 
-static void* handler;
 static pthread_key_t linear_key = 0;
 
 void InitGSStore()
@@ -479,6 +478,5 @@ fallback:
 
 void InstallExceptionHandler()
 {
-	handler = RtlAddVectoredExceptionHandler(true, handler_cb);
-	log("handler is %p", handler);
+	RtlAddVectoredExceptionHandler(true, handler_cb);
 }

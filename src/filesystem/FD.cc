@@ -108,12 +108,12 @@ void FD::Flush()
 		int fd = i->first;
 		if (cloexecs[fd])
 		{
-			log("closing fd %d", fd);
+			//log("closing fd %d", fd);
 			fds.erase(i++);
 		}
 		else
 		{
-			log("not closing fd %d", fd);
+			//log("not closing fd %d", fd);
 			i++;
 		}
 	}

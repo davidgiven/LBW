@@ -147,7 +147,6 @@ static void elf_exec(const string& pathname, const char* argv[], const char* env
 			interpreter->Load();
 			executable->Load();
 			entrypoint = interpreter->GetEntrypoint();
-			log("main executable entrypoint %08x", executable->GetEntrypoint());
 		}
 		else
 		{
@@ -192,11 +191,6 @@ static void elf_exec(const string& pathname, const char* argv[], const char* env
 #endif
 		calldata[index++] = (const char*) AT_NULL;
 
-		log("executable phdrs at %08x", &executable->GetProgramHeader(0));
-		log("running code now");
-		//getchar(); asm volatile ("int $3");
-
-		//MemOp::Store(0xf4, 0x7ff62237);
 		asm volatile (
 			"mov %1, %%esp; " // set stack to startup data
 			"push %0; " // argc
