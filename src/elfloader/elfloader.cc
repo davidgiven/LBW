@@ -13,7 +13,7 @@
 #include "a.out.h"
 #include <sys/mman.h>
 
-#define VERBOSE
+//#define VERBOSE
 
 static const char* elftype_to_str(int type)
 {
