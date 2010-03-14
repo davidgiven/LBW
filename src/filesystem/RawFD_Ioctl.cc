@@ -123,7 +123,8 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 
 		case LINUX_TIOCSPGRP:
 		{
-			result = tcsetpgrp(_realfd, argument);
+			int& pgrp = *(int*) argument;
+			result = tcsetpgrp(_realfd, pgrp);
 			goto common;
 		}
 
