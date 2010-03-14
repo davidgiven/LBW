@@ -13,7 +13,7 @@
 #include "a.out.h"
 #include <sys/mman.h>
 
-//#define VERBOSE
+#define VERBOSE
 
 static const char* elftype_to_str(int type)
 {
@@ -43,7 +43,8 @@ static const char* elftype_to_str(int type)
 }
 
 ElfLoader::ElfLoader():
-		_phdr(NULL)
+	_phdr(NULL),
+	_loadaddress(0)
 {
 }
 
@@ -93,6 +94,7 @@ void ElfLoader::Open(const string& filename)
 		throw ENOEXEC;
 
 #if defined VERBOSE
+	log("Loading ELF file with %d headers:", GetNumProgramHeaders());
 	for (size_t i=0; i<GetNumProgramHeaders(); i++)
 	{
 		const struct elf_phdr& ph = GetProgramHeader(i);
@@ -127,7 +129,6 @@ void ElfLoader::Open(const string& filename)
 	}
 
 	_entrypoint = _elfhdr.e_entry;
-	_loadaddress = 0;
 }
 
 void ElfLoader::Close()
