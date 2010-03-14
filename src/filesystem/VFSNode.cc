@@ -102,7 +102,7 @@ void VFSNode::Resolve(const string& path, Ref<VFSNode>& node, string& leaf,
 			Ref<VFSNode> linktarget;
 
 			if (!target.empty() && (target[0] == '/'))
-				VFS::Resolve(target, linktarget, element, true);
+				VFS::Resolve(NULL, target, linktarget, element, true);
 			else
 				node->Resolve(target, linktarget, element, true);
 			node = linktarget;

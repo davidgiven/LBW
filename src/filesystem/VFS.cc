@@ -28,7 +28,7 @@ void VFS::SetCWD(const string& path)
 
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf);
+	Resolve(NULL, path, node, leaf);
 
 	cwd = node->Traverse(leaf);
 }
@@ -48,7 +48,7 @@ Ref<VFSNode> VFS::GetCWDNode()
 	return (VFSNode*) cwd;
 }
 
-void VFS::Resolve(const string& path, Ref<VFSNode>& node,
+void VFS::Resolve(VFSNode* cwd, const string& path, Ref<VFSNode>& node,
 		string& leaf, bool followlink)
 {
 	RAIILock locked;
@@ -57,14 +57,18 @@ void VFS::Resolve(const string& path, Ref<VFSNode>& node,
 	if (!p.empty() && (p[0] == '/'))
 		root->Resolve(p.substr(1), node, leaf, followlink);
 	else
+	{
+		if (!cwd)
+			cwd = ::cwd;
 		cwd->Resolve(p, node, leaf, followlink);
+	}
 }
 
-Ref<FD> VFS::OpenDirectory(const string& path, bool nofollow)
+Ref<FD> VFS::OpenDirectory(VFSNode* cwd, const string& path, bool nofollow)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, !nofollow);
+	Resolve(cwd, path, node, leaf, !nofollow);
 
 	node = node->Traverse(leaf);
 
@@ -73,78 +77,79 @@ Ref<FD> VFS::OpenDirectory(const string& path, bool nofollow)
 	return (FD*) dirfd;
 }
 
-Ref<FD> VFS::OpenFile(const string& path, int flags, int mode, bool nofollow)
+Ref<FD> VFS::OpenFile(VFSNode* cwd, const string& path, int flags, int mode,
+		bool nofollow)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, !nofollow);
+	Resolve(cwd, path, node, leaf, !nofollow);
 
 	return node->OpenFile(leaf, flags, mode);
 }
 
-void VFS::Stat(const string& path, struct stat& st)
+void VFS::Stat(VFSNode* cwd, const string& path, struct stat& st)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf);
+	Resolve(cwd, path, node, leaf);
 
 	node->StatFile(leaf, st);
 }
 
-void VFS::Lstat(const string& path, struct stat& st)
+void VFS::Lstat(VFSNode* cwd, const string& path, struct stat& st)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
 	node->StatFile(leaf, st);
 }
 
-void VFS::MkDir(const string& path, int mode)
+void VFS::MkDir(VFSNode* cwd, const string& path, int mode)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
 	node->MkDir(leaf, mode);
 }
 
-void VFS::RmDir(const string& path)
+void VFS::RmDir(VFSNode* cwd, const string& path)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
 	node->RmDir(leaf);
 }
 
-string VFS::ReadLink(const string& path)
+string VFS::ReadLink(VFSNode* cwd, const string& path)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
 	return node->ReadLink(leaf);
 }
 
-int VFS::Access(const string& path, int mode)
+int VFS::Access(VFSNode* cwd, const string& path, int mode)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, true);
+	Resolve(cwd, path, node, leaf, true);
 
 	return node->Access(leaf, mode);
 }
 
-void VFS::Rename(const string& from, const string& to)
+void VFS::Rename(VFSNode* cwd, const string& from, const string& to)
 {
 	Ref<VFSNode> fromnode;
 	string fromleaf;
-	Resolve(from, fromnode, fromleaf, false);
+	Resolve(cwd, from, fromnode, fromleaf, false);
 
 	Ref<VFSNode> tonode;
 	string toleaf;
-	Resolve(to, tonode, toleaf, false);
+	Resolve(cwd, to, tonode, toleaf, false);
 
 	if (typeid((VFSNode*)fromnode) != typeid((VFSNode*)tonode))
 		throw EXDEV;
@@ -152,24 +157,24 @@ void VFS::Rename(const string& from, const string& to)
 	fromnode->Rename(fromleaf, tonode, toleaf);
 }
 
-void VFS::Chmod(const string& path, int mode)
+void VFS::Chmod(VFSNode* cwd, const string& path, int mode)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, true);
+	Resolve(cwd, path, node, leaf, true);
 
 	node->Chmod(leaf, mode);
 }
 
-void VFS::Link(const string& from, const string& to)
+void VFS::Link(VFSNode* cwd, const string& from, const string& to)
 {
 	Ref<VFSNode> fromnode;
 	string fromleaf;
-	Resolve(from, fromnode, fromleaf, false);
+	Resolve(cwd, from, fromnode, fromleaf, false);
 
 	Ref<VFSNode> tonode;
 	string toleaf;
-	Resolve(to, tonode, toleaf, false);
+	Resolve(cwd, to, tonode, toleaf, false);
 
 	if (typeid((VFSNode*)fromnode) != typeid((VFSNode*)tonode))
 		throw EXDEV;
@@ -177,29 +182,29 @@ void VFS::Link(const string& from, const string& to)
 	fromnode->Link(fromleaf, tonode, toleaf);
 }
 
-void VFS::Unlink(const string& path)
+void VFS::Unlink(VFSNode* cwd, const string& path)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(path, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
 	node->Unlink(leaf);
 }
 
-void VFS::Symlink(const string& from, const string& to)
+void VFS::Symlink(VFSNode* cwd, const string& from, const string& to)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(from, node, leaf, false);
+	Resolve(cwd, from, node, leaf, false);
 
 	node->Symlink(leaf, to);
 }
 
-void VFS::Utime(const string& from, const struct utimbuf& ub)
+void VFS::Utime(VFSNode* cwd, const string& from, const struct utimbuf& ub)
 {
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(from, node, leaf, false);
+	Resolve(cwd, from, node, leaf, false);
 
 	node->Utime(leaf, ub);
 }

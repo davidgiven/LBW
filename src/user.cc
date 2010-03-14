@@ -69,7 +69,7 @@ void Unlock()
 
 static int probe_executable(const string& filename)
 {
-	Ref<FD> ref = VFS::OpenFile(filename);
+	Ref<FD> ref = VFS::OpenFile(NULL, filename);
 	int fd = ref->GetRealFD();
 
 	char buffer[4];

@@ -34,6 +34,14 @@ struct linux_dirent64 {
 #define LINUX_DT_SOCK		12
 #define LINUX_DT_WHT		14
 
+DirFD* DirFD::Cast(FD* fd)
+{
+	DirFD* dirfd = dynamic_cast<DirFD*>(fd);
+	if (!dirfd)
+		throw ENOTDIR;
+	return dirfd;
+}
+
 static int get_file_type(const struct stat& st)
 {
 	if (S_ISDIR(st.st_mode))

@@ -54,7 +54,7 @@ SYSCALL(sys_access)
 	int mode = arg.a1.s;
 
 	/* F_OK, R_OK, W_OK, X_OK are standard. */
-	return VFS::Access(path, mode);
+	return VFS::Access(NULL, path, mode);
 }
 
 SYSCALL(sys_readlink)
@@ -63,7 +63,7 @@ SYSCALL(sys_readlink)
 	char* buffer = (char*) arg.a1.p;
 	size_t len = arg.a2.u;
 
-	string target = VFS::ReadLink(path);
+	string target = VFS::ReadLink(NULL, path);
 	return copystring2(target, buffer, len);
 }
 
@@ -78,7 +78,7 @@ SYSCALL(sys_chmod)
 	const char* path = (const char*) arg.a0.p;
 	unsigned int mode = arg.a1.u;
 
-	VFS::Chmod(path, mode);
+	VFS::Chmod(NULL, path, mode);
 	return 0;
 }
 
@@ -108,7 +108,7 @@ SYSCALL(sys_mkdir)
 	const char* path = (const char*) arg.a0.p;
 	int mode = arg.a1.s;
 
-	VFS::MkDir(path, mode);
+	VFS::MkDir(NULL, path, mode);
 	return 0;
 }
 
@@ -116,7 +116,7 @@ SYSCALL(sys_rmdir)
 {
 	const char* path = (const char*) arg.a0.p;
 
-	VFS::RmDir(path);
+	VFS::RmDir(NULL, path);
 	return 0;
 }
 
@@ -125,7 +125,7 @@ SYSCALL(sys_rename)
 	const char* from = (const char*) arg.a0.p;
 	const char* to = (const char*) arg.a1.p;
 
-	VFS::Rename(from, to);
+	VFS::Rename(NULL, from, to);
 	return 0;
 }
 
@@ -134,7 +134,7 @@ SYSCALL(sys_link)
 	const char* from = (const char*) arg.a0.p;
 	const char* to = (const char*) arg.a1.p;
 
-	VFS::Link(from, to);
+	VFS::Link(NULL, from, to);
 	return 0;
 }
 
@@ -142,7 +142,17 @@ SYSCALL(sys_unlink)
 {
 	const char* path = (const char*) arg.a0.p;
 
-	VFS::Unlink(path);
+	VFS::Unlink(NULL, path);
+	return 0;
+}
+
+SYSCALL(sys_unlinkat)
+{
+	int dirfd = arg.a0.s;
+	const char* path = (const char*) arg.a1.p;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	VFS::Unlink(node, path);
 	return 0;
 }
 
@@ -151,7 +161,7 @@ SYSCALL(sys_symlink)
 	const char* path1 = (const char*) arg.a0.p;
 	const char* path2 = (const char*) arg.a1.p;
 
-	VFS::Symlink(path1, path2);
+	VFS::Symlink(NULL, path1, path2);
 	return 0;
 }
 
@@ -161,7 +171,7 @@ SYSCALL(compat_sys_utime)
 	const char* path = (const char*) arg.a0.p;
 	struct utimbuf& ub = *(struct utimbuf*) arg.a1.p;
 
-	VFS::Utime(path, ub);
+	VFS::Utime(NULL, path, ub);
 	return 0;
 }
 

@@ -42,7 +42,7 @@ void UnixSocketFD::Connect(const struct sockaddr* sa, int addrlen)
 	RAIILock locked;
 	Ref<VFSNode> node;
 	string leaf;
-	VFS::Resolve(sun->sun_path, node, leaf, false);
+	VFS::Resolve(NULL, sun->sun_path, node, leaf, false);
 
 	InterixVFSNode* inode = dynamic_cast<InterixVFSNode*>((VFSNode*)node);
 	if (!inode)

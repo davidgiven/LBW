@@ -50,9 +50,27 @@ SYSCALL(sys32_stat64)
 	const char* filename = (const char*) arg.a0.p;
 	struct linux_stat64& ls = *(struct linux_stat64*) arg.a1.p;
 
-	//log("stat64ing <%p %s> to %p", filename, filename, &ls);
 	struct stat is;
-	VFS::Stat(filename, is);
+	VFS::Stat(NULL, filename, is);
+	Convert(is, ls);
+	return 0;
+}
+
+SYSCALL(sys32_fstatat)
+{
+	int dirfd = arg.a0.s;
+	const char* filename = (const char*) arg.a1.p;
+	struct linux_stat64& ls = *(struct linux_stat64*) arg.a2.p;
+	int flags = arg.a3.s;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+
+	struct stat is;
+	if (flags & LINUX_AT_SYMLINK_NOFOLLOW)
+		VFS::Lstat(node, filename, is);
+	else
+		VFS::Stat(node, filename, is);
+
 	Convert(is, ls);
 	return 0;
 }
@@ -63,7 +81,7 @@ SYSCALL(sys32_lstat64)
 	struct linux_stat64& ls = *(struct linux_stat64*) arg.a1.p;
 
 	struct stat is;
-	VFS::Lstat(filename, is);
+	VFS::Lstat(NULL, filename, is);
 	Convert(is, ls);
 	return 0;
 }

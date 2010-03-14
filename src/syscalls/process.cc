@@ -187,7 +187,9 @@ SYSCALL(compat_sys_getrlimit)
 	}
 
 	int result = getrlimit(iresource, limit);
-	return SysError(result);
+	if (result == -1)
+		throw errno;
+	return 0;
 }
 
 SYSCALL(sys_getpgrp)
@@ -201,7 +203,9 @@ SYSCALL(sys_setpgid)
 	pid_t pgrp = arg.a1.u;
 
 	int result = setpgid(pid, pgrp);
-	return SysError(result);
+	if (result == -1)
+		throw errno;
+	return 0;
 }
 
 static int convert_waitoptions_l2i(int options, int& ioptions)

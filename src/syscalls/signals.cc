@@ -202,6 +202,9 @@ static void convert_sigaction_i2l(struct sigaction& is, struct linux_sigaction32
 #define COPYBIT_L2I(field, name) \
 	if (ls.field & LINUX_##name) is.field |= name
 
+#define CHECKBIT_L2I(field, name) \
+	if (ls.field & LINUX_##name) Warning("unsupported sigaction() flag " #name)
+
 static void convert_sigaction_l2i(struct linux_sigaction32& ls, struct sigaction& is)
 {
 	memset(&is, 0, sizeof(is));
@@ -209,9 +212,10 @@ static void convert_sigaction_l2i(struct linux_sigaction32& ls, struct sigaction
 	COPYBIT_L2I(sa_flags, SA_NOCLDSTOP);
 	COPYBIT_L2I(sa_flags, SA_RESETHAND);
 	COPYBIT_L2I(sa_flags, SA_RESTART);
-	if (ls.sa_flags & (LINUX_SA_NOCLDWAIT |
-			LINUX_SA_SIGINFO | LINUX_SA_ONSTACK | LINUX_SA_NODEFER))
-		Warning("unsupported sigaction() flags %08x", ls.sa_flags);
+	CHECKBIT_L2I(sa_flags, SA_NOCLDWAIT);
+	CHECKBIT_L2I(sa_flags, SA_SIGINFO);
+	CHECKBIT_L2I(sa_flags, SA_ONSTACK);
+	CHECKBIT_L2I(sa_flags, SA_NODEFER);
 
 	is.sa_handler = ls.sa_handler;
 	convert_sigset_l2i(ls.sa_mask, is.sa_mask);
@@ -290,7 +294,7 @@ SYSCALL(sys32_rt_sigaction)
 
 SYSCALL(sys_tgkill)
 {
-	u_int32_t tgid = arg.a0.u;
+	pid_t tgid = arg.a0.u;
 	pid_t pid = arg.a1.u;
 	int sig = arg.a2.u;
 

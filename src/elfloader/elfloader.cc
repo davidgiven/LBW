@@ -57,7 +57,7 @@ void ElfLoader::Open(const string& filename)
 {
 	int i;
 
-	_fd = VFS::OpenFile(filename);
+	_fd = VFS::OpenFile(NULL, filename);
 	int fd = _fd->GetRealFD();
 
 	/* Load the header. */

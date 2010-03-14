@@ -96,4 +96,10 @@ struct linux_stat64  {
 
 extern void Convert(struct stat& is, struct linux_stat64& ls);
 
+#define LINUX_AT_FDCWD -100
+#define LINUX_AT_SYMLINK_NOFOLLOW    0x100
+#define LINUX_AT_REMOVEDIR           0x200
+#define LINUX_AT_SYMLINK_FOLLOW      0x400
+#define LINUX_AT_EACCESS             0x200
+
 #endif

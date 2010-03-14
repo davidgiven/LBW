@@ -12,6 +12,7 @@
 using std::map;
 
 class SocketFD;
+class VFSNode;
 
 class FD : public HasRefCount
 {
@@ -22,6 +23,7 @@ public:
 	static Ref<FD> Get(int fd);
 	static void Flush();
 	static map<int, int> GetFDMap();
+	static Ref<VFSNode> GetVFSNodeFor(int fd);
 
 	static bool GetCloexec(int fd);
 	static void SetCloexec(int fd, bool f);

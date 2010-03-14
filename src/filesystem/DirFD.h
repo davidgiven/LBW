@@ -18,11 +18,16 @@ class DirectoryEntry;
 class DirFD : public FD
 {
 public:
+	static DirFD* Cast(FD* fd);
+
+public:
 	DirFD();
 	~DirFD();
 
 public:
 	void Open(VFSNode* vfsnode);
+
+	VFSNode* GetVFSNode() const { return _vfsnode; }
 
 public:
 	virtual int GetDents(void* buffer, size_t count);

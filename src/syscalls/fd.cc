@@ -43,11 +43,11 @@ SYSCALL(compat_sys_open)
 
 	Ref<FD> ref;
 	if (flags & LINUX_O_DIRECTORY)
-		ref = VFS::OpenDirectory(filename, nofollow);
+		ref = VFS::OpenDirectory(NULL, filename, nofollow);
 	else
 	{
 		int iflags = FileFlagsL2I(flags);
-		ref = VFS::OpenFile(filename, iflags, mode, nofollow);
+		ref = VFS::OpenFile(NULL, filename, iflags, mode, nofollow);
 	}
 
 	return FD::New(ref);

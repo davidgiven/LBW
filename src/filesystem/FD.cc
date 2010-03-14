@@ -5,6 +5,8 @@
 
 #include "globals.h"
 #include "FD.h"
+#include "filesystem/VFS.h"
+#include "filesystem/VFSNode.h"
 #include <map>
 #include <list>
 
@@ -139,6 +141,16 @@ map<int, int> FD::GetFDMap()
 	}
 
 	return fdmap;
+}
+
+Ref<VFSNode> FD::GetVFSNodeFor(int linuxfd)
+{
+	if (linuxfd == LINUX_AT_FDCWD)
+		return VFS::GetCWDNode();
+
+	Ref<FD> reffd = FD::Get(linuxfd);
+	DirFD* dirfd = DirFD::Cast(reffd);
+	return dirfd->GetVFSNode();
 }
 
 /* --- General FD management --------------------------------------------- */
