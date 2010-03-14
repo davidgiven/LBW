@@ -79,3 +79,16 @@ SYSCALL(compat_sys_clock_getres)
 
 	return 0;
 }
+
+/* struct itermval is compatible; timer names are compatible */
+SYSCALL(compat_sys_setitimer)
+{
+	int which = arg.a0.s;
+	const struct itimerval* value = (const struct itimerval*) arg.a1.p;
+	struct itimerval* ovalue = (struct itimerval*) arg.a2.p;
+
+	int i = setitimer(which, value, ovalue);
+	if (i == -1)
+		throw errno;
+	return 0;
+}

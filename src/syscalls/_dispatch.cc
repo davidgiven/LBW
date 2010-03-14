@@ -117,6 +117,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 93, sys_ftruncate);
 		CALL_SYSCALL( 99, compat_sys_statfs);
 		CALL_SYSCALL(102, compat_sys_socketcall);
+		CALL_SYSCALL(104, compat_sys_setitimer);
 		CALL_SYSCALL(108, compat_sys_newfstat);
 		CALL_SYSCALL(120, sys32_clone);
 		CALL_SYSCALL(122, sys_uname);
