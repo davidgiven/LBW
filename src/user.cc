@@ -8,6 +8,7 @@
 #include "syscalls/mmap.h"
 #include "syscalls/memory.h"
 #include "filesystem/FD.h"
+#include "filesystem/InterixVFSNode.h"
 #include "filesystem/VFS.h"
 #include "MemOp.h"
 #include <pthread.h>
@@ -227,9 +228,51 @@ static void elf_exec(const string& pathname, const char* argv[], const char* env
 	}
 }
 
+static void interix_exec(const string& pathname, const char* argv[], const char* environ[])
+{
+	/* Change the Interix directory. */
+
+	Ref<VFSNode> node = VFS::GetCWDNode();
+	InterixVFSNode* inode = dynamic_cast<InterixVFSNode*>((VFSNode*) node);
+	if (inode)
+		fchdir(inode->GetRealFD());
+	else
+		chdir("/");
+
+	/* Adjust the fd map so that Interix sees the same mappings that Linux
+	 * is.
+	 */
+
+	FD::Flush();
+	map<int, int> fdmap = FD::GetFDMap();
+
+	map<int, int>::const_iterator i = fdmap.begin();
+	while (i != fdmap.end())
+	{
+		//log("linuxfd %d maps to realfd %d", i->first, i->second);
+		if (i->first != i->second)
+		{
+			if (fdmap.find(i->second) != fdmap.end())
+			{
+				int newfd = dup(i->first);
+				//log("copying realfd %d -> %d", i->first, newfd);
+				fdmap[i->second] = newfd;
+			}
+
+			//log("copying realfd %d -> %d", i->second, i->first);
+			int fd = dup2(i->second, i->first);
+			assert(fd != -1);
+		}
+		i++;
+	}
+
+	execve(pathname.c_str(), (char* const*) argv, (char* const*) environ);
+	throw errno;
+}
+
 void Exec(const string& pathname, const char* argv[], const char* environ[])
 {
-	log("opening %s", argv[0]);
+	//log("opening %s", argv[0]);
 
 	switch (probe_executable(pathname))
 	{
@@ -237,7 +280,7 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 			return elf_exec(pathname, argv, environ);
 
 		case INTERIX_EXECUTABLE:
-			error("don't know how to load Interix executables yet");
+			return interix_exec(pathname, argv, environ);
 	}
 
 	throw ENOEXEC;

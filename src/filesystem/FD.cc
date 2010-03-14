@@ -119,6 +119,28 @@ void FD::Flush()
 	}
 }
 
+map<int, int> FD::GetFDMap()
+{
+	map<int, int> fdmap;
+
+	FDS::iterator i = fds.begin();
+	while (i != fds.end())
+	{
+		try
+		{
+			int realfd = i->second->GetRealFD();
+			fdmap[i->first] = realfd;
+		}
+		catch (int e)
+		{
+		}
+
+		i++;
+	}
+
+	return fdmap;
+}
+
 /* --- General FD management --------------------------------------------- */
 
 FD::FD()

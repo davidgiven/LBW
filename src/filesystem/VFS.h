@@ -12,10 +12,11 @@ class VFS
 {
 public:
 	static void SetRoot(const string& path);
-	static Ref<VFSNode> GetRoot();
+	static Ref<VFSNode> GetRootNode();
 
 	static void SetCWD(const string& path);
 	static string GetCWD();
+	static Ref<VFSNode> GetCWDNode();
 
 	static void Resolve(const string& path, Ref<VFSNode>& node,
 			string& leaf, bool followlink = true);

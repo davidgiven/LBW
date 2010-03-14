@@ -17,7 +17,7 @@ void VFS::SetRoot(const string& path)
 	cwd = (VFSNode*) root;
 }
 
-Ref<VFSNode> VFS::GetRoot()
+Ref<VFSNode> VFS::GetRootNode()
 {
 	return (VFSNode*) root;
 }
@@ -41,6 +41,11 @@ string VFS::GetCWD()
 	if (s.empty())
 		return "/";
 	return s;
+}
+
+Ref<VFSNode> VFS::GetCWDNode()
+{
+	return (VFSNode*) cwd;
 }
 
 void VFS::Resolve(const string& path, Ref<VFSNode>& node,

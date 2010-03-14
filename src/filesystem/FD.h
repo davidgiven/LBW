@@ -6,7 +6,10 @@
 #ifndef FD_H
 #define FD_H
 
+#include <map>
 #include "file.h"
+
+using std::map;
 
 class SocketFD;
 
@@ -18,6 +21,7 @@ public:
 	static int Dup(int fd, int newfd=-1);
 	static Ref<FD> Get(int fd);
 	static void Flush();
+	static map<int, int> GetFDMap();
 
 	static bool GetCloexec(int fd);
 	static void SetCloexec(int fd, bool f);
