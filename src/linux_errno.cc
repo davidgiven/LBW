@@ -24,6 +24,7 @@ int ErrnoI2L(int e)
 		case ENOMEM:          return LINUX_ENOMEM;
 		case ENOPROTOOPT:     return LINUX_ENOPROTOOPT;
 		case ENOSYS:          return LINUX_ENOSYS;
+		case ENOTDIR:         return LINUX_ENOTDIR;
 		case ENXIO:           return LINUX_ENXIO;
 		case EOPNOTSUPP:      return LINUX_EOPNOTSUPP;
 		case EPERM:           return LINUX_EPERM;
