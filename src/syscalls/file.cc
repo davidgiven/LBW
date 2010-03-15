@@ -150,9 +150,13 @@ SYSCALL(sys_unlinkat)
 {
 	int dirfd = arg.a0.s;
 	const char* path = (const char*) arg.a1.p;
+	int flags = arg.a2.s;
 
 	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
-	VFS::Unlink(node, path);
+	if (flags & LINUX_AT_REMOVEDIR)
+		VFS::RmDir(node, path);
+	else
+		VFS::Unlink(node, path);
 	return 0;
 }
 
@@ -171,7 +175,75 @@ SYSCALL(compat_sys_utime)
 	const char* path = (const char*) arg.a0.p;
 	struct utimbuf& ub = *(struct utimbuf*) arg.a1.p;
 
-	VFS::Utime(NULL, path, ub);
+	struct timeval times[2];
+	times[0].tv_usec = times[1].tv_usec = 0;
+	times[0].tv_sec = ub.actime;
+	times[1].tv_sec = ub.modtime;
+
+	VFS::Utimes(NULL, path, times);
+	return 0;
+}
+
+/* struct timeval is compatible with Interix. */
+SYSCALL(compat_sys_utimes)
+{
+	const char* path = (const char*) arg.a0.p;
+	const struct timeval* times = (const struct timeval*) arg.a1.p;
+
+	VFS::Utimes(NULL, path, times);
+	return 0;
+}
+
+static void copytimeval(const struct timespec& from, struct timeval& to,
+		time_t fallback)
+{
+	if (from.tv_nsec == LINUX_UTIME_NOW)
+		time(&to.tv_sec);
+	else if (from.tv_nsec == LINUX_UTIME_OMIT)
+		to.tv_sec = fallback;
+	else
+		to.tv_sec = from.tv_sec;
+
+	to.tv_usec = 0;
+}
+
+/* compat_utimbuf is compatible with Interix. */
+SYSCALL(compat_sys_utimensat)
+{
+	int dirfd = arg.a0.s;
+	const char* path = (const char*) arg.a1.p;
+	const struct timespec* times = (const struct timespec*) arg.a2.p;
+	int flags = arg.a3.s;
+
+	if (flags & LINUX_AT_SYMLINK_NOFOLLOW)
+	{
+		/* We can't update the time on symlinks in Interix. As hardly anyone
+		 * cares, just pretend it worked.
+		 */
+		return 0;
+	}
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+
+	if (times)
+	{
+		struct timeval timescopy[2];
+		struct stat st;
+
+		if ((times[0].tv_nsec == LINUX_UTIME_OMIT) ||
+			(times[1].tv_nsec == LINUX_UTIME_OMIT))
+		{
+			VFS::Stat(node, path, st);
+		}
+
+		copytimeval(times[0], timescopy[0], st.st_atime);
+		copytimeval(times[1], timescopy[1], st.st_mtime);
+
+		VFS::Utimes(node, path, timescopy);
+	}
+	else
+		VFS::Utimes(node, path, NULL);
+
 	return 0;
 }
 

@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "filesystem/RawFD.h"
 #include "filesystem/InterixVFSNode.h"
+#include <sys/time.h>
 #include <utime.h>
 #include <typeinfo>
 
@@ -35,7 +36,7 @@ InterixVFSNode::~InterixVFSNode()
 	close(_realfd);
 }
 
-string InterixVFSNode::GetPath()
+string InterixVFSNode::GetRealPath()
 {
 	setup();
 
@@ -68,6 +69,7 @@ Ref<VFSNode> InterixVFSNode::Traverse(const string& name)
 		return GetParent();
 
 	int i = fchdir(_realfd);
+//	log("%s(%s/%s) -> %d %d", __FUNCTION__, GetRealPath().c_str(), name.c_str(), i, errno);
 	if (i == -1)
 		throw errno;
 
@@ -173,7 +175,7 @@ void InterixVFSNode::Rename(const string& from, VFSNode* other, const string& to
 
 	RAIILock locked;
 
-	string toabs = other->GetPath() + "/" + to;
+	string toabs = othernode->GetRealPath() + "/" + to;
 
 	setup();
 	int i = rename(from.c_str(), toabs.c_str());
@@ -202,7 +204,7 @@ void InterixVFSNode::Link(const string& from, VFSNode* other, const string& to)
 
 	RAIILock locked;
 
-	string toabs = other->GetPath() + "/" + to;
+	string toabs = othernode->GetRealPath() + "/" + to;
 
 	setup();
 	int i = link(from.c_str(), toabs.c_str());
@@ -231,10 +233,24 @@ void InterixVFSNode::Symlink(const string& name, const string& target)
 }
 
 
-void InterixVFSNode::Utime(const string& name, const struct utimbuf& ub)
+void InterixVFSNode::Utimes(const string& name, const struct timeval times[2])
 {
 	RAIILock locked;
 	setup(name);
+
+	/* Interix doesn't support times(), even though the docs say it does! */
+
+	struct utimbuf ub;
+	if (!times)
+	{
+		time(&ub.actime);
+		ub.modtime = ub.actime;
+	}
+	else
+	{
+		ub.actime = times[0].tv_sec;
+		ub.modtime = times[1].tv_sec;
+	}
 
 	int i = utime(name.c_str(), &ub);
 	if (i == -1)

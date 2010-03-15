@@ -102,4 +102,7 @@ extern void Convert(struct stat& is, struct linux_stat64& ls);
 #define LINUX_AT_SYMLINK_FOLLOW      0x400
 #define LINUX_AT_EACCESS             0x200
 
+#define LINUX_UTIME_NOW      ((1l << 30) - 1l)
+#define LINUX_UTIME_OMIT     ((1l << 30) - 2l)
+
 #endif

@@ -470,7 +470,9 @@ SYSCALL(sys32_mprotect)
 
 	//int iprot = convert_prot_l2i(prot);
 	//int result = mprotect((void*) addr, len, iprot);
+#if defined VERBOSE
 	log("mprotect(%08x, %08x, %08x)", addr, len, prot);
+#endif
 	//return SysError(result);
 	return 0;
 }

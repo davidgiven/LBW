@@ -155,9 +155,11 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(266, compat_sys_clock_getres);
 		CALL_SYSCALL(268, compat_sys_statfs64);
 		CALL_SYSCALL(270, sys_tgkill);
+		CALL_SYSCALL(271, compat_sys_utimes);
 		CALL_SYSCALL(300, sys32_fstatat);
 		CALL_SYSCALL(301, sys_unlinkat);
 		CALL_SYSCALL(311, compat_sys_set_robust_list);
+		CALL_SYSCALL(320, compat_sys_utimensat);
 
 		case 243: /* special handling for sys_set_thread_area */
 			extern int32_t sys_set_thread_area(Registers& regs);

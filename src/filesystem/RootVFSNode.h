@@ -7,6 +7,7 @@
 #define ROOTVFSNODE_H
 
 #include "InterixVFSNode.h"
+#include "DevVFSNode.h"
 
 class RootVFSNode : public InterixVFSNode
 {
@@ -15,6 +16,10 @@ public:
 	~RootVFSNode();
 
 	Ref<VFSNode> GetParent();
+	Ref<VFSNode> Traverse(const string& name);
+
+private:
+	Ref<VFSNode> _devfs;
 };
 
 #endif

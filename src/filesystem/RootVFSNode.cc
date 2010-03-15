@@ -7,7 +7,8 @@
 #include "RootVFSNode.h"
 
 RootVFSNode::RootVFSNode(const string& path):
-	InterixVFSNode(NULL, "", path)
+	InterixVFSNode(NULL, "", path),
+	_devfs(new DevVFSNode(this, "dev"))
 {
 }
 
@@ -19,3 +20,12 @@ Ref<VFSNode> RootVFSNode::GetParent()
 {
 	return this;
 }
+
+Ref<VFSNode> RootVFSNode::Traverse(const string& name)
+{
+	if (name == "dev")
+		return _devfs;
+
+	return InterixVFSNode::Traverse(name);
+}
+

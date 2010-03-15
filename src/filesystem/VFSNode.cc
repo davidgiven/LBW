@@ -74,6 +74,8 @@ int VFSNode::GetFileType(const string& name)
 void VFSNode::Resolve(const string& path, Ref<VFSNode>& node, string& leaf,
 		bool followlink)
 {
+	//log("%s(%s)", __FUNCTION__, path.c_str());
+
 	node = this;
 	string::size_type left = 0;
 	for (;;)
@@ -143,13 +145,11 @@ void VFSNode::StatFile(const string& name, struct stat& st)
 
 Ref<VFSNode> VFSNode::Traverse(const string& name)
 {
-	log("fallback Traverse");
 	throw ENOENT;
 }
 
 Ref<FD> VFSNode::OpenFile(const string& name, int flags, int mode)
 {
-	log("fallback OpenFile");
 	throw ENOENT;
 }
 
@@ -213,7 +213,7 @@ void VFSNode::Symlink(const string& name, const string& target)
 	throw EINVAL;
 }
 
-void VFSNode::Utime(const string& name, const struct utimbuf& ub)
+void VFSNode::Utimes(const string& name, const struct timeval times[2])
 {
 	assert(false);
 	throw EINVAL;

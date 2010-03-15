@@ -20,7 +20,7 @@ private:
 
 public:
 	int GetRealFD() { return _realfd; }
-	string GetPath();
+	string GetRealPath();
 
 	void StatFile(const string& name, struct stat& st);
 	Ref<VFSNode> Traverse(const string& name);
@@ -36,7 +36,7 @@ public:
 	void Link(const string& from, VFSNode* other, const string& to);
 	void Unlink(const string& name);
 	void Symlink(const string& name, const string& target);
-	void Utime(const string& name, const struct utimbuf& ub);
+	void Utimes(const string& name, const struct timeval times[2]);
 
 private:
 	void setup();

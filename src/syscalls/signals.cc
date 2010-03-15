@@ -212,10 +212,12 @@ static void convert_sigaction_l2i(struct linux_sigaction32& ls, struct sigaction
 	COPYBIT_L2I(sa_flags, SA_NOCLDSTOP);
 	COPYBIT_L2I(sa_flags, SA_RESETHAND);
 	COPYBIT_L2I(sa_flags, SA_RESTART);
+#if 0
 	CHECKBIT_L2I(sa_flags, SA_NOCLDWAIT);
 	CHECKBIT_L2I(sa_flags, SA_SIGINFO);
 	CHECKBIT_L2I(sa_flags, SA_ONSTACK);
 	CHECKBIT_L2I(sa_flags, SA_NODEFER);
+#endif
 
 	is.sa_handler = ls.sa_handler;
 	convert_sigset_l2i(ls.sa_mask, is.sa_mask);

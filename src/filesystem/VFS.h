@@ -37,7 +37,7 @@ public:
 	static void Link(VFSNode* cwd, const string& from, const string& to);
 	static void Unlink(VFSNode* cwd, const string& path);
 	static void Symlink(VFSNode* cwd, const string& from, const string& to);
-	static void Utime(VFSNode* cwd, const string& path, const struct utimbuf& ub);
+	static void Utimes(VFSNode* cwd, const string& path, const struct timeval times[2]);
 };
 
 #endif
