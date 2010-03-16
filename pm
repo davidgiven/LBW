@@ -54,7 +54,7 @@ $CC $CFILE -o "$PMEXEC" && exec "$0" "$@"
 echo "pm: bootstrap failed."
 exit 1
 #!/usr/bin/lua
-local VERSION="0.1.4"
+local VERSION="0.1.5"
 local stdin=io.stdin
 local stdout=io.stdout
 local stderr=io.stderr
