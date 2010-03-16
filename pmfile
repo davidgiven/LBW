@@ -12,7 +12,7 @@ HOME = os.getenv("HOME")
 CBUILDFLAGS = {
 	'-Wall',
 	'-Wno-multichar',
-	'-O3',
+	'-O0',
 	'-g',
 	'-fomit-frame-pointer'
 }
@@ -58,6 +58,7 @@ lbw = cxxprogram {
 	cxxfile "src/filesystem/VFSNode.cc",
 	cxxfile "src/filesystem/RootVFSNode.cc",
 	cxxfile "src/filesystem/InterixVFSNode.cc",
+	cxxfile "src/filesystem/DevVFSNode.cc",
 	cxxfile "src/syscalls/_dispatch.cc",
 	cxxfile "src/syscalls/_names.cc",
 	cxxfile "src/syscalls/process.cc",
