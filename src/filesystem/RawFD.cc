@@ -23,6 +23,7 @@ RawFD::~RawFD()
 void RawFD::Open(const string& filename, int flags, int mode)
 {
 	_realfd = open(filename.c_str(), flags, mode);
+	//log("open (%s) -> realfd %d", filename.c_str(), _realfd);
 	if (_realfd == -1)
 		throw errno;
 }

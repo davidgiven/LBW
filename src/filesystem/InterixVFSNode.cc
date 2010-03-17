@@ -25,9 +25,11 @@ InterixVFSNode::InterixVFSNode(VFSNode* parent, const string& name):
 void InterixVFSNode::init(VFSNode* parent, const string& name, const string& path)
 {
 	_realfd = open(path.c_str(), O_RDONLY);
-	//log("open(%s) -> %d", path.c_str(), _realfd);
+	//log("open(%s) -> realfd %d", path.c_str(), _realfd);
 	if (_realfd == -1)
 		throw errno;
+
+	fcntl(_realfd, F_SETFD, FD_CLOEXEC);
 }
 
 InterixVFSNode::~InterixVFSNode()

@@ -44,7 +44,9 @@ typedef int64_t s64;
 
 struct Options_s
 {
-	bool FakeRoot : 1;
+	string LBW;              // path of LBW executable
+	string Chroot;           // current chroot, or empty
+	bool FakeRoot : 1;       // is fakeroot enabled?
 };
 
 extern Options_s Options;
@@ -88,7 +90,7 @@ extern void InitProcess();
 extern void InstallExceptionHandler();
 extern void Lock();
 extern void Unlock();
-extern void Exec(const string& pathname, const char* argv[], const char* environ[]);
+extern void RunElf(const string& pathname, const char* argv[], const char* environ[]);
 
 class RAIILock
 {

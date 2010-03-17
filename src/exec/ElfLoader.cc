@@ -59,6 +59,7 @@ void ElfLoader::Open(const string& filename)
 
 	_fd = VFS::OpenFile(NULL, filename);
 	int fd = _fd->GetRealFD();
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
 
 	/* Load the header. */
 
@@ -258,4 +259,8 @@ void ElfLoader::Load()
 #if defined VERBOSE
 	log("entrypoint is %08x", _entrypoint);
 #endif
+
+	/* Now done with the file descriptor, so close it. */
+
+	_fd = NULL;
 }

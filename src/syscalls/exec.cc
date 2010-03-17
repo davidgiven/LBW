@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "syscalls.h"
+#include "exec/exec.h"
 #include <unistd.h>
 
 SYSCALL(sys32_execve)

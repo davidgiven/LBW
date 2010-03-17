@@ -33,14 +33,26 @@ static int find_free()
 	}
 }
 
-int FD::New(FD* fdo)
+int FD::New(FD* fdo, int fd)
 {
 	RAIILock locked;
 
-	int fd = find_free();
+	if (fd == -1)
+		fd = find_free();
 
 	fds[fd] = fdo;
 	cloexecs[fd] = false;
+
+#if 0
+	try
+	{
+		int realfd = fdo->GetRealFD();
+		log("mapped realfd %d -> linuxfd %d", realfd, fd);
+	}
+	catch (...)
+	{
+	}
+#endif
 
 	return fd;
 }
@@ -67,6 +79,7 @@ int FD::Dup(int fd, int newfd)
 
 	fds[newfd] = ref;
 	cloexecs[newfd] = cloexecs[fd];
+	//log("dup linuxfd %d -> %d", fd, newfd);
 
 	return newfd;
 }

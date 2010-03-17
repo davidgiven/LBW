@@ -17,7 +17,7 @@ class VFSNode;
 class FD : public HasRefCount
 {
 public:
-	static int New(FD* fdo);
+	static int New(FD* fdo, int newfd=-1);
 	static void Delete(int fd);
 	static int Dup(int fd, int newfd=-1);
 	static Ref<FD> Get(int fd);

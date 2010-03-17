@@ -50,7 +50,11 @@ SYSCALL(compat_sys_open)
 		ref = VFS::OpenFile(NULL, filename, iflags, mode, nofollow);
 	}
 
-	return FD::New(ref);
+	int fd = FD::New(ref);
+
+	FD::SetCloexec(fd, !!(flags & LINUX_O_CLOEXEC));
+
+	return fd;
 }
 
 SYSCALL(sys_close)

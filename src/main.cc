@@ -8,8 +8,9 @@
 #include "filesystem/VFS.h"
 #include "filesystem/RawFD.h"
 #include <stdarg.h>
-#include <pthread.h>
-#include <semaphore.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 typeof(Options) Options;
 
@@ -66,29 +67,6 @@ void Error(const string& message)
 	writef(2, "lbw error: %s\n", message.c_str());
 	_exit(-1);
 }
-
-#if 0
-static int init_fifo(void)
-{
-	const char* homedir = getenv("HOME");
-	char buffer[PATH_MAX];
-
-	snprintf(buffer, sizeof(buffer),
-			"%s/.lbw", homedir);
-	mkdir(buffer, S_IRWXU); /* ignore errors */
-
-	snprintf(buffer, sizeof(buffer),
-			"%s/.lbw/%d", homedir, slavepid);
-	int e = mknod(buffer, S_IFIFO | S_IRWXU, 0);
-	if (e)
-		return e;
-
-	slavefd = open(buffer, O_RDWR);
-	if (slavefd == -1)
-		return -1;
-	return 0;
-}
-#endif
 
 class ArgumentParser
 {
@@ -161,36 +139,108 @@ public:
 
 static void add_std_fd(int fd)
 {
+	/* This is a very crude way of determining whether the file descriptor is
+	 * open. */
+
+#if 0
+	{
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(fd, &set);
+
+		struct timeval tv = {0, 0};
+
+		if (select(fd+1, &set, NULL, NULL, &tv) == -1)
+			return;
+	}
+#else
+	if (fcntl(fd, F_GETFL, 0) == -1)
+		return;
+#endif
+
+	//log("registering fd %d", fd);
 	Ref<RawFD> fdo = new RawFD();
 	fdo->Reference(); // never allow these objects to be destroyed
 	fdo->Open(fd);
-	assert(FD::New(fdo) == fd); // ensure they have the right fd
+	FD::New(fdo, fd);
 }
 
 int main(int argc, const char* argv[], const char* environ[])
 {
+	string linuxfile;
+
+	/* Register file descriptors. We have to do this first to avoid
+	 * problems caused by our own file descriptors.
+	 */
+
+	for (int i = 0; i < 10; i++)
+		add_std_fd(i);
+
+	if (getenv("LBW_CHILD"))
 	{
-		ArgumentParser* ap = new ArgumentParser();
-		ap->Parse(argc, argv);
+		unsetenv("LBW_CHILD");
 
-		Options.FakeRoot = ap->FakeRoot;
-		VFS::SetRoot(ap->Chroot);
-		VFS::SetCWD(ap->CWD);
+		/* This is a child LBW invoked via LBW's own exec, so use the magic
+		 * environment-based options parsing.
+		 */
 
-		delete ap;
+		Options.FakeRoot = !!getenv("LBW_FAKEROOT");
+		unsetenv("LBW_FAKEROOT");
+
+		const char* s = getenv("LBW_CHROOT");
+		if (s)
+		{
+			Options.Chroot = s;
+			VFS::SetRoot(Options.Chroot);
+		}
+		unsetenv("LBW_CHROOT");
+
+		s = getenv("LBW_CWD");
+		if (s)
+			VFS::SetCWD(s);
+		unsetenv("LBW_CWD");
+
+		s = getenv("LBW_LBWEXE");
+		if (!s)
+			error("lbw: unable to locate LBW executable");
+		Options.LBW = s;
+		unsetenv("LBW_LBWEXE");
+
+		s = getenv("LBW_LINUXEXE");
+		if (!s)
+			error("lbw: unable to locate Linux executable");
+		linuxfile = s;
+		unsetenv("LBW_LINUXEXE");
 	}
+	else
+	{
+		/* Find the real location of LBW. */
 
-	if (argc == 0)
-		Error("lbw: you must specify a binary to run. Try --help.");
+		char buffer[PATH_MAX];
+		char* s = realpath(argv[0], buffer);
+		if (!s)
+			error("lbw: unable to locate LBW executable");
+		Options.LBW = buffer;
 
-	add_std_fd(0);
-	add_std_fd(1);
-	add_std_fd(2);
+		/* Parse human arguments. */
+
+		ArgumentParser ap;
+		ap.Parse(argc, argv);
+
+		Options.FakeRoot = ap.FakeRoot;
+		Options.Chroot = ap.Chroot;
+		VFS::SetRoot(ap.Chroot);
+		VFS::SetCWD(ap.CWD);
+
+		if (argc == 0)
+			Error("lbw: you must specify a binary to run. Try --help.");
+
+		linuxfile = argv[0];
+	}
 
 	InstallExceptionHandler();
 
-	//StartMonitor();
-	Exec(argv[0], argv, environ);
+	RunElf(linuxfile, argv, environ);
 	return 0;
 }
 
