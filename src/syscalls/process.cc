@@ -236,5 +236,6 @@ SYSCALL(sys32_waitpid)
 
 	/* Luckily, Interix and Linux wait statuses are compatible. */
 	int result = waitpid(pid, stat_addr, ioptions);
+	log("process <%d> return result <%08x>", result);
 	return SysError(result);
 }

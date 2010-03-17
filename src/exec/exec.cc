@@ -78,7 +78,7 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 
 	/* Invoke child lwb instance. */
 
-	log("exec <%s> into pid %d", pathname.c_str(), getpid());
+	//log("exec <%s> into pid %d", pathname.c_str(), getpid());
 	execve(Options.LBW.c_str(), (char* const*) argv, (char* const*) newenviron);
 }
 
