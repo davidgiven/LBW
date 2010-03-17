@@ -359,6 +359,7 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			}
 		}
 
+		case 0xa0: // mov [gs+offset], al
 		case 0xa1: // mov [gs+offset], eax
 		case 0xa2: // mov al, [gs+offset]
 		case 0xa3: // mov eax, [gs+offset]
@@ -440,6 +441,30 @@ static s32 __stdcall handler_cb(EXCEPTION_POINTERS* ep)
 			 */
 
 			translate_gs_instruction(*ep->ContextRecord, trampoline+5);
+
+			MemOp::Store<u8>(0x68, trampoline+0); // push Iz
+			MemOp::Store<u32>(ep->ContextRecord->Eip, trampoline+1); // return address
+
+			ep->ContextRecord->Eip = (u32) trampoline;
+
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+
+		case 0xf0: /* LOCK */
+		{
+			/* We should only get this if this is a locked GS:
+			 * instruction.
+			 */
+
+			if (code[1] != 0x65)
+				goto fallback;
+
+			/* It is. We just translate the instruction as normal, but
+			 * with the lock byte in front.
+			 */
+
+			trampoline[5] = 0xf0;
+			translate_gs_instruction(*ep->ContextRecord, trampoline+6);
 
 			MemOp::Store<u8>(0x68, trampoline+0); // push Iz
 			MemOp::Store<u32>(ep->ContextRecord->Eip, trampoline+1); // return address
