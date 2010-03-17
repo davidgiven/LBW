@@ -76,7 +76,8 @@ class ArgumentParser
 public:
 	ArgumentParser():
 		Chroot("/"),
-		FakeRoot(false)
+		FakeRoot(false),
+		Warnings(false)
 	{
 		char buffer[PATH_MAX];
 		getcwd(buffer, sizeof(buffer));
@@ -259,7 +260,7 @@ int main(int argc, const char* argv[], const char* environ[])
 
 	InstallExceptionHandler();
 
-	log("running elf file <%s>", linuxfile.c_str());
+	//log("running elf file <%s>", linuxfile.c_str());
 	RunElf(linuxfile, argv, environ);
 	return 0;
 }

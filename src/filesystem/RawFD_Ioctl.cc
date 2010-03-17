@@ -78,6 +78,8 @@
 #define LINUX_TIOCMIWAIT	0x545C	/* wait for a change on serial input line(s) */
 #define LINUX_TIOCGICOUNT	0x545D	/* read serial port inline interrupt counts */
 
+#define LINUX_SIOCGSTAMP    0x8906
+
 int RawFD::Ioctl(int cmd, u_int32_t argument)
 {
 	int result;
@@ -133,6 +135,9 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 			result = ioctl(_realfd, FIONREAD, argument);
 			goto common;
 		}
+
+		case LINUX_SIOCGSTAMP:
+			throw EINVAL;
 
 		default:
 			return FD::Ioctl(cmd, argument);

@@ -15,6 +15,7 @@ int ErrnoI2L(int e)
 		case EEXIST:          return LINUX_EEXIST;
 		case EFAULT:          return LINUX_EFAULT;
 		case EINPROGRESS:     return LINUX_EINPROGRESS;
+		case EINTR:           return LINUX_EINTR;
 		case EINVAL:          return LINUX_EINVAL;
 		case EIO:             return LINUX_EIO;
 		case EISCONN:         return LINUX_EISCONN;

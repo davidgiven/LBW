@@ -7,6 +7,7 @@
 #include "syscalls.h"
 #include "filesystem/IPSocketFD.h"
 #include "filesystem/UnixSocketFD.h"
+#include "filesystem/socket.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <xti.h>
@@ -29,62 +30,6 @@
 #define LINUX_SYS_SENDMSG	16		/* sys_sendmsg(2)		*/
 #define LINUX_SYS_RECVMSG	17		/* sys_recvmsg(2)		*/
 #define LINUX_SYS_ACCEPT4	18		/* sys_accept4(2)		*/
-
-#define LINUX_SOL_SOCKET      1
-#define LINUX_SOL_IP          0
-#define LINUX_SOL_TCP         6
-#define LINUX_SOL_UDP         17
-
-#define LINUX_SO_DEBUG        1
-#define LINUX_SO_REUSEADDR    2
-#define LINUX_SO_TYPE         3
-#define LINUX_SO_ERROR        4
-#define LINUX_SO_DONTROUTE    5
-#define LINUX_SO_BROADCAST    6
-#define LINUX_SO_SNDBUF       7
-#define LINUX_SO_RCVBUF       8
-#define LINUX_SO_SNDBUFFORCE  32
-#define LINUX_SO_RCVBUFFORCE  33
-#define LINUX_SO_KEEPALIVE    9
-#define LINUX_SO_OOBINLINE    10
-#define LINUX_SO_NO_CHECK     11
-#define LINUX_SO_PRIORITY     12
-#define LINUX_SO_LINGER       13
-#define LINUX_SO_BSDCOMPAT    14
-#define LINUX_SO_PASSCRED     16
-#define LINUX_SO_PEERCRED     17
-#define LINUX_SO_RCVLOWAT     18
-#define LINUX_SO_SNDLOWAT     19
-#define LINUX_SO_RCVTIMEO     20
-#define LINUX_SO_SNDTIMEO     21
-
-#define LINUX_IP_TOS          1
-#define LINUX_IP_TTL          2
-#define LINUX_IP_HDRINCL      3
-#define LINUX_IP_OPTIONS      4
-#define LINUX_IP_RECVOPTS     6
-
-#define LINUX_TCP_NODELAY      1
-#define LINUX_TCP_MAXSEG       2
-#define LINUX_TCP_KEEPIDLE     4
-
-#define LINUX_MSG_OOB             0x01 /* Process out-of-band data.  */
-#define LINUX_MSG_PEEK            0x02 /* Peek at incoming messages.  */
-#define LINUX_MSG_DONTROUTE       0x04 /* Don't use local routing.  */
-#define LINUX_MSG_CTRUNC          0x08 /* Control data lost before delivery.  */
-#define LINUX_MSG_PROXY           0x10 /* Supply or ask second address.  */
-#define LINUX_MSG_TRUNC           0x20
-#define LINUX_MSG_DONTWAIT        0x40 /* Nonblocking IO.  */
-#define LINUX_MSG_EOR             0x80 /* End of record.  */
-#define LINUX_MSG_WAITALL         0x100 /* Wait for a full request.  */
-#define LINUX_MSG_FIN             0x200
-#define LINUX_MSG_SYN             0x400
-#define LINUX_MSG_CONFIRM         0x800 /* Confirm path validity.  */
-#define LINUX_MSG_RST             0x1000
-#define LINUX_MSG_ERRQUEUE        0x2000 /* Fetch message from error queue.  */
-#define LINUX_MSG_NOSIGNAL        0x4000 /* Do not generate SIGPIPE.  */
-#define LINUX_MSG_MORE            0x8000  /* Sender will send more.  */
-#define LINUX_MSG_CMSG_CLOEXEC    0x40000000
 
 static void convert_sockopt(int level, int optname, int& ilevel, int& ioptname)
 {
@@ -253,7 +198,7 @@ static int do_send(int fd, const void *msg, size_t len, int flags)
 
 	Ref<FD> ref = FD::Get(fd);
 	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->Send(msg, len, iflags);
+	return fdo->SendTo(msg, len, iflags, NULL, NULL);
 }
 
 static int do_recv(int fd, void *msg, size_t len, int flags)
@@ -262,7 +207,17 @@ static int do_recv(int fd, void *msg, size_t len, int flags)
 
 	Ref<FD> ref = FD::Get(fd);
 	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->Recv(msg, len, iflags);
+	return fdo->RecvFrom(msg, len, iflags, NULL, NULL);
+}
+
+static int do_sendto(int fd, const void* buf, size_t len, int flags,
+		const struct sockaddr* to, int tolen)
+{
+	int iflags = convert_msg_flags(flags);
+
+	Ref<FD> ref = FD::Get(fd);
+	SocketFD* fdo = SocketFD::Cast(ref);
+	return fdo->SendTo(buf, len, iflags, to, tolen);
 }
 
 static int do_recvfrom(int fd, void *buf, size_t len, int flags,
@@ -273,6 +228,39 @@ static int do_recvfrom(int fd, void *buf, size_t len, int flags,
 	Ref<FD> ref = FD::Get(fd);
 	SocketFD* fdo = SocketFD::Cast(ref);
 	return fdo->RecvFrom(buf, len, iflags, from, fromlen);
+}
+
+static ssize_t do_sendmsg(int fd, const struct linux_msghdr *msg, int flags)
+{
+	if (msg->msg_controllen > 0)
+		throw EOPNOTSUPP;
+
+	if (msg->msg_iovlen == 1)
+	{
+		return do_sendto(fd, msg->msg_iov->iov_base, msg->msg_iov->iov_len,
+				flags,
+				(const struct sockaddr*) msg->msg_name, msg->msg_namelen);
+	}
+	else
+	{
+		error("sendmsg() with more than one iov element not supported yet");
+	}
+}
+
+static ssize_t do_recvmsg(int fd, struct linux_msghdr *msg, int flags)
+{
+	msg->msg_controllen = 0;
+
+	if (msg->msg_iovlen == 1)
+	{
+		return do_recvfrom(fd, msg->msg_iov->iov_base, msg->msg_iov->iov_len,
+				flags,
+				(struct sockaddr*) msg->msg_name, &msg->msg_namelen);
+	}
+	else
+	{
+		error("sendmsg() with more than one iov element not supported yet");
+	}
 }
 
 SYSCALL(compat_sys_socketcall)
@@ -313,12 +301,20 @@ SYSCALL(compat_sys_socketcall)
 			return do_recv(args[0], (void*) args[1], args[2],
 					args[3]);
 
+		case LINUX_SYS_SENDTO:
+			return do_sendto(args[0], (const void*) args[1], args[2],
+					args[3], (const struct sockaddr*) args[4], args[5]);
+
 		case LINUX_SYS_RECVFROM:
 			return do_recvfrom(args[0], (void*) args[1], args[2],
 					args[3], (struct sockaddr*) args[4], (int*) args[5]);
 
-//		case LINUX_SYS_RECVMSG:
-//			return do_recvmsg(
+		case LINUX_SYS_SENDMSG:
+			return do_sendmsg(args[0], (const struct linux_msghdr*) args[1], args[2]);
+
+		case LINUX_SYS_RECVMSG:
+			return do_recvmsg(args[0], (struct linux_msghdr*) args[1], args[2]);
+
 		default:
 			error("unimplemented compat_sys_socketcall opcode %d", call);
 	}

@@ -29,10 +29,11 @@ public:
 	virtual void GetSockopt(int level, int optname, void* option,
 			int* optlen);
 	virtual void GetSockname(struct sockaddr* addr, int* namelen);
-	virtual int Send(const void* msg, size_t len, int flags);
-	virtual int Recv(void* msg, size_t len, int flags);
+
+	virtual int SendTo(const void *buf, size_t len, int flags,
+			const struct sockaddr* to, int tolen);
 	virtual int RecvFrom(void *buf, size_t len, int flags,
-			struct sockaddr *from, int *fromlen);
+			struct sockaddr* from, int* fromlen);
 
 };
 

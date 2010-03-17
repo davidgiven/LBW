@@ -63,29 +63,21 @@ void SocketFD::GetSockname(struct sockaddr* sa, int* namelen)
 	throw EINVAL;
 }
 
-int SocketFD::Send(const void* msg, size_t len, int flags)
-{
-	int fd = GetRealFD();
-	int i = send(fd, msg, len, flags);
-	if (i == -1)
-		throw errno;
-	return i;
-}
-
-int SocketFD::Recv(void* msg, size_t len, int flags)
-{
-	int fd = GetRealFD();
-	int i = recv(fd, msg, len, flags);
-	if (i == -1)
-		throw errno;
-	return i;
-}
-
 int SocketFD::RecvFrom(void *buf, size_t len, int flags,
 		struct sockaddr *from, int *fromlen)
 {
 	int fd = GetRealFD();
 	int i = recvfrom(fd, buf, len, flags, from, fromlen);
+	if (i == -1)
+		throw errno;
+	return i;
+}
+
+int SocketFD::SendTo(const void *buf, size_t len, int flags,
+		const struct sockaddr* to, int tolen)
+{
+	int fd = GetRealFD();
+	int i = sendto(fd, buf, len, flags, to, tolen);
 	if (i == -1)
 		throw errno;
 	return i;
