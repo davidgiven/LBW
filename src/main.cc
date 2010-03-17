@@ -35,16 +35,19 @@ void log(const char* format, ...)
 
 void Warning(const char* format, ...)
 {
-	va_list ap;
-	va_start(ap, format);
+	if (Options.Warnings)
+	{
+		va_list ap;
+		va_start(ap, format);
 
-	string s = cprintf("lbw(%lu) warning: ", getpid());
-	s += vcprintf(format, ap);
-	s += "\n";
+		string s = cprintf("lbw(%lu) warning: ", getpid());
+		s += vcprintf(format, ap);
+		s += "\n";
 
-	write(2, s.data(), s.size());
+		write(2, s.data(), s.size());
 
-	va_end(ap);
+		va_end(ap);
+	}
 }
 
 void error(const char* format, ...)
@@ -119,6 +122,11 @@ public:
 			FakeRoot = true;
 			return 1;
 		}
+		else if (option == "--warnings")
+		{
+			Warnings = true;
+			return 1;
+		}
 		else if (option == "--chroot")
 		{
 			Chroot = argument;
@@ -135,6 +143,7 @@ public:
 	string Chroot;
 	string CWD;
 	bool FakeRoot : 1;
+	bool Warnings : 1;
 };
 
 static void add_std_fd(int fd)
@@ -187,6 +196,9 @@ int main(int argc, const char* argv[], const char* environ[])
 		Options.FakeRoot = !!getenv("LBW_FAKEROOT");
 		unsetenv("LBW_FAKEROOT");
 
+		Options.Warnings = !!getenv("LBW_WARNINGS");
+		unsetenv("LBW_WARNINGS");
+
 		const char* s = getenv("LBW_CHROOT");
 		if (s)
 		{
@@ -227,9 +239,16 @@ int main(int argc, const char* argv[], const char* environ[])
 		ArgumentParser ap;
 		ap.Parse(argc, argv);
 
+		/* Find the real location of the chroot. */
+
+		s = realpath(ap.Chroot.c_str(), buffer);
+		if (!s)
+			error("lbw: unable to locate chroot");
+
+		Options.Chroot = buffer;
 		Options.FakeRoot = ap.FakeRoot;
-		Options.Chroot = ap.Chroot;
-		VFS::SetRoot(ap.Chroot);
+		Options.Warnings = ap.Warnings;
+		VFS::SetRoot(Options.Chroot);
 		VFS::SetCWD(ap.CWD);
 
 		if (argc == 0)
@@ -240,6 +259,7 @@ int main(int argc, const char* argv[], const char* environ[])
 
 	InstallExceptionHandler();
 
+	log("running elf file <%s>", linuxfile.c_str());
 	RunElf(linuxfile, argv, environ);
 	return 0;
 }

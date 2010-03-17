@@ -47,6 +47,7 @@ struct Options_s
 	string LBW;              // path of LBW executable
 	string Chroot;           // current chroot, or empty
 	bool FakeRoot : 1;       // is fakeroot enabled?
+	bool Warnings : 1;       // are we showing warnings?
 };
 
 extern Options_s Options;

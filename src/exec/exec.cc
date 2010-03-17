@@ -40,7 +40,7 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 	while (environ[envc])
 		envc++;
 
-	const char* newenviron[envc + 6];
+	const char* newenviron[envc + 7];
 	memset(newenviron, 0, sizeof(newenviron));
 
 	int index = 0;
@@ -50,6 +50,8 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 	newenviron[index++] = "LBW_CHILD=1";
 	if (Options.FakeRoot)
 		newenviron[index++] = "LBW_FAKEROOT=1";
+	if (Options.Warnings)
+		newenviron[index++] = "LBW_WARNINGS=1";
 
 	if (!Options.Chroot.empty())
 	{
@@ -76,6 +78,7 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 
 	/* Invoke child lwb instance. */
 
+	log("exec <%s> into pid %d", pathname.c_str(), getpid());
 	execve(Options.LBW.c_str(), (char* const*) argv, (char* const*) newenviron);
 }
 
@@ -104,7 +107,7 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 		 * is.
 		 */
 
-		FD::Flush();
+		FD::Flush(); // free cloexec file descriptors
 		map<int, int> fdmap = FD::GetFDMap();
 
 		map<int, int>::const_iterator i = fdmap.begin();
