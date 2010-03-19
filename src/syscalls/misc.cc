@@ -7,6 +7,7 @@
 #include "syscalls.h"
 #include <sys/utsname.h>
 
+#pragma pack(push, 1)
 struct linux_old_utsname {
 	char sysname[65];
 	char nodename[65];
@@ -14,6 +15,24 @@ struct linux_old_utsname {
 	char version[65];
 	char machine[65];
 };
+
+struct linux_compat_sysinfo {
+	s32 uptime;
+	u32 loads[3];
+	u32 totalram;
+	u32 freeram;
+	u32 sharedram;
+	u32 bufferram;
+	u32 totalswap;
+	u32 freeswap;
+	u16 procs;
+	u16 pad;
+	u32 totalhigh;
+	u32 freehigh;
+	u32 mem_unit;
+	char _f[20-2*sizeof(u32)-sizeof(int)];
+};
+#pragma pack(pop)
 
 SYSCALL(sys_personality)
 {
@@ -42,3 +61,11 @@ SYSCALL(sys_uname)
 	return 0;
 }
 
+SYSCALL(compat_sys_sysinfo)
+{
+	struct linux_compat_sysinfo* sysinfo =
+			(struct linux_compat_sysinfo*) arg.a0.p;
+
+	Warning("sysinfo() not implemented yet");
+	throw ENOSYS;
+}
