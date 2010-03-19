@@ -194,6 +194,18 @@ SYSCALL(compat_sys_utimes)
 	return 0;
 }
 
+/* struct timeval is compatible with Interix. */
+SYSCALL(compat_sys_futimesat)
+{
+	int dirfd = arg.a0.s;
+	const char* path = (const char*) arg.a1.p;
+	const struct timeval* times = (const struct timeval*) arg.a2.p;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	VFS::Utimes(node, path, times);
+	return 0;
+}
+
 static void copytimeval(const struct timespec& from, struct timeval& to,
 		time_t fallback)
 {
