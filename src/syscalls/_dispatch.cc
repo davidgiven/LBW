@@ -127,6 +127,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(140, sys_llseek);
 		CALL_SYSCALL(141, compat_sys_getdents);
 		CALL_SYSCALL(142, compat_sys_select);
+		CALL_SYSCALL(144, sys_msync);
 		CALL_SYSCALL(146, compat_sys_writev);
 		CALL_SYSCALL(168, sys_poll);
 		CALL_SYSCALL(174, sys32_rt_sigaction);

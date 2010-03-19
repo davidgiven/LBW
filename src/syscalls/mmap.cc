@@ -476,3 +476,28 @@ SYSCALL(sys32_mprotect)
 	//return SysError(result);
 	return 0;
 }
+
+SYSCALL(sys_msync)
+{
+	void* addr = arg.a0.p;
+	size_t length = arg.a1.u;
+	int flags = arg.a2.s;
+
+	int iflags = 0;
+	if (flags & LINUX_MS_ASYNC)
+		iflags |= MS_ASYNC;
+	if (flags & LINUX_MS_SYNC)
+		iflags |= MS_SYNC;
+	if (flags & LINUX_MS_INVALIDATE)
+		iflags |= MS_INVALIDATE;
+
+	if (!MemOp::Aligned<0x1000>(addr))
+		throw EINVAL;
+	length += MemOp::Offset<0x10000>(addr);
+	addr = MemOp::Align<0x10000>(addr);
+
+	int result = msync(addr, length, iflags);
+	if (result == -1)
+		throw errno;
+	return 0;
+}

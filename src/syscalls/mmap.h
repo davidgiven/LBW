@@ -18,6 +18,10 @@
 #define LINUX_MAP_FIXED	0x10		/* Interpret addr exactly */
 #define LINUX_MAP_ANONYMOUS	0x20		/* don't use a file */
 
+#define LINUX_MS_ASYNC        1
+#define LINUX_MS_INVALIDATE   2
+#define LINUX_MS_SYNC         4
+
 extern u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& fd, u32 offset);
 extern void do_munmap(u8* addr, u32 len);
 extern void UnmapAll();
