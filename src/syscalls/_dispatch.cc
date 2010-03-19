@@ -134,6 +134,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(174, sys32_rt_sigaction);
 		CALL_SYSCALL(175, sys32_rt_sigprocmask);
 		CALL_SYSCALL(183, sys_get_cwd);
+		CALL_SYSCALL(186, stub32_sigaltstack);
 		CALL_SYSCALL(191, compat_sys_getrlimit);
 		CALL_SYSCALL(192, sys32_mmap2);
 		CALL_SYSCALL(195, sys32_stat64);

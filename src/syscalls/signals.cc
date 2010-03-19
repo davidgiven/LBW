@@ -337,3 +337,8 @@ SYSCALL(sys32_kill)
 		throw errno;
 	return 0;
 }
+
+SYSCALL(stub32_sigaltstack)
+{
+	throw ENOSYS;
+}
