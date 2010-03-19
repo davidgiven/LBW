@@ -30,6 +30,7 @@ public:
 
 	void Fstat(struct stat& st);
 	void Fchmod(mode_t mode);
+	void Fchown(uid_t owner, gid_t group);
 
 	int Fcntl(int cmd, u_int32_t argument);
 	int Ioctl(int cmd, u_int32_t argument);

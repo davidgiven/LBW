@@ -44,6 +44,7 @@ public:
 
 	virtual void Fstat(struct stat& ls);
 	virtual void Fchmod(mode_t mode);
+	virtual void Fchown(uid_t owner, gid_t group);
 
 	virtual int Fcntl(int cmd, u_int32_t argument);
 	virtual int Ioctl(int cmd, u_int32_t argument);

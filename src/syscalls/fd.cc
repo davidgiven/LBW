@@ -230,6 +230,17 @@ SYSCALL(sys_fchmod)
 	return 0;
 }
 
+SYSCALL(sys_fchown)
+{
+	int fd = arg.a0.u;
+	uid_t owner = arg.a1.s;
+	gid_t group = arg.a2.s;
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Fchown(owner, group);
+	return 0;
+}
+
 SYSCALL(compat_sys_getdents64)
 {
 	unsigned int fd = arg.a0.u;

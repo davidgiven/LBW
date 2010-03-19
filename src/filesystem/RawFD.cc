@@ -100,3 +100,10 @@ void RawFD::Fchmod(mode_t mode)
 	if (result == -1)
 		throw errno;
 }
+
+void RawFD::Fchown(uid_t owner, gid_t group)
+{
+	int result = fchown(_realfd, owner, group);
+	if (result == -1)
+		throw errno;
+}

@@ -147,6 +147,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(201, sys_geteuid);
 		CALL_SYSCALL(202, sys_getegid);
 		CALL_SYSCALL(205, sys_getgroups);
+		CALL_SYSCALL(207, sys_fchown);
 		CALL_SYSCALL(213, sys_setuid);
 		CALL_SYSCALL(214, sys_setgid);
 		CALL_SYSCALL(220, compat_sys_getdents64);

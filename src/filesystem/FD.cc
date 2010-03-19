@@ -227,6 +227,11 @@ void FD::Fchmod(mode_t mode)
 	throw EINVAL;
 }
 
+void FD::Fchown(uid_t owner, gid_t group)
+{
+	throw EINVAL;
+}
+
 int FD::Fcntl(int cmd, u_int32_t argument)
 {
 	error("unsupported fcntl %08x", cmd);
