@@ -41,6 +41,7 @@ public:
 	virtual int64_t Seek(int whence, int64_t offset);
 	virtual void Truncate(int64_t length);
 	virtual void Fsync();
+	virtual void Flock(int operation);
 
 	virtual void Fstat(struct stat& ls);
 	virtual void Fchmod(mode_t mode);

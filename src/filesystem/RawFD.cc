@@ -87,6 +87,13 @@ void RawFD::Fsync()
 		throw errno;
 }
 
+void RawFD::Flock(int operation)
+{
+	int i = flock(_realfd, operation);
+	if (i == -1)
+		throw errno;
+}
+
 void RawFD::Fstat(struct stat& st)
 {
 	int result = fstat(_realfd, &st);

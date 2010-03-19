@@ -27,6 +27,7 @@ public:
 	int64_t Seek(int whence, int64_t offset);
 	void Truncate(int64_t length);
 	void Fsync();
+	void Flock(int operation);
 
 	void Fstat(struct stat& st);
 	void Fchmod(mode_t mode);

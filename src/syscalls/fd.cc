@@ -241,6 +241,23 @@ SYSCALL(sys_fchown)
 	return 0;
 }
 
+/* Lock operations are compatible. */
+SYSCALL(sys_flock)
+{
+	int fd = arg.a0.s;
+	int operation = arg.a1.s;
+
+	if (operation & ~(LOCK_SH|LOCK_EX|LOCK_NB|LOCK_UN))
+	{
+		Warning("flock() GNU extensions not supported yet");
+		throw EINVAL;
+	}
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Flock(operation);
+	return 0;
+}
+
 SYSCALL(compat_sys_getdents64)
 {
 	unsigned int fd = arg.a0.u;

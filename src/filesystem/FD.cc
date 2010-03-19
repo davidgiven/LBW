@@ -217,6 +217,11 @@ void FD::Fsync()
 {
 }
 
+void FD::Flock(int operation)
+{
+	throw EINVAL;
+}
+
 void FD::Fstat(struct stat& ls)
 {
 	throw EINVAL;
