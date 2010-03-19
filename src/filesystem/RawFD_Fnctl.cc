@@ -18,7 +18,16 @@ struct linux_flock
 	u16 l_whence;
 	u32 l_start;
 	u32 l_len;
-	u16 l_pid;
+	u32 l_pid;
+};
+
+struct linux_flock64
+{
+	u16 l_type;
+	u16 l_whence;
+	u64 l_start;
+	u64 l_len;
+	u32 l_pid;
 };
 #pragma pack(pop)
 
@@ -31,6 +40,26 @@ static void convert(struct linux_flock& lfl, struct flock& ifl)
 		case LINUX_F_UNLCK: ifl.l_type = F_UNLCK; break;
 		default: throw EINVAL;
 	}
+
+	ifl.l_whence = lfl.l_whence;
+	ifl.l_start = lfl.l_start;
+	ifl.l_len = lfl.l_len;
+	ifl.l_pid = lfl.l_pid;
+}
+
+static void convert(struct linux_flock64& lfl, struct flock& ifl)
+{
+	switch (lfl.l_type)
+	{
+		case LINUX_F_RDLCK: ifl.l_type = F_RDLCK; break;
+		case LINUX_F_WRLCK: ifl.l_type = F_WRLCK; break;
+		case LINUX_F_UNLCK: ifl.l_type = F_UNLCK; break;
+		default: throw EINVAL;
+	}
+
+	if ((lfl.l_start > 0xffffffffLL) ||
+		(lfl.l_len > 0xffffffffLL))
+		throw ENOLCK;
 
 	ifl.l_whence = lfl.l_whence;
 	ifl.l_start = lfl.l_start;
@@ -65,6 +94,36 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 			convert(lfl, ifl);
 
 			int result = fcntl(_realfd, F_SETLK, &ifl);
+			return SysError(result);
+		}
+
+		case LINUX_F_SETLKW:
+		{
+			struct linux_flock& lfl = *(struct linux_flock*) argument;
+			struct flock ifl;
+			convert(lfl, ifl);
+
+			int result = fcntl(_realfd, F_SETLKW, &ifl);
+			return SysError(result);
+		}
+
+		case LINUX_F_SETLK64:
+		{
+			struct linux_flock64& lfl = *(struct linux_flock64*) argument;
+			struct flock ifl;
+			convert(lfl, ifl);
+
+			int result = fcntl(_realfd, F_SETLK, &ifl);
+			return SysError(result);
+		}
+
+		case LINUX_F_SETLKW64:
+		{
+			struct linux_flock64& lfl = *(struct linux_flock64*) argument;
+			struct flock ifl;
+			convert(lfl, ifl);
+
+			int result = fcntl(_realfd, F_SETLKW, &ifl);
 			return SysError(result);
 		}
 	}
