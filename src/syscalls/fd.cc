@@ -201,6 +201,15 @@ SYSCALL(sys_llseek)
 	return 0;
 }
 
+SYSCALL(sys_fsync)
+{
+	int fd = arg.a0.u;
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Fsync();
+	return 0;
+}
+
 SYSCALL(sys_ftruncate)
 {
 	int fd = arg.a0.u;

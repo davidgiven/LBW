@@ -213,6 +213,10 @@ void FD::Truncate(int64_t offset)
 	throw EINVAL;
 }
 
+void FD::Fsync()
+{
+}
+
 void FD::Fstat(struct stat& ls)
 {
 	throw EINVAL;

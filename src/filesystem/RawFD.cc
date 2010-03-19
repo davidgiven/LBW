@@ -80,6 +80,13 @@ void RawFD::Truncate(int64_t offset)
 		throw errno;
 }
 
+void RawFD::Fsync()
+{
+	int i = fsync(_realfd);
+	if (i == -1)
+		throw errno;
+}
+
 void RawFD::Fstat(struct stat& st)
 {
 	int result = fstat(_realfd, &st);
