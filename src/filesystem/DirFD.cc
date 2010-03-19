@@ -171,3 +171,8 @@ void DirFD::Fstat(struct stat& ls)
 {
 	_vfsnode->StatFile(".", ls);
 }
+
+void DirFD::Fchmod(mode_t mode)
+{
+	_vfsnode->Chmod(".", mode);
+}

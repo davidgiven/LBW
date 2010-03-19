@@ -86,3 +86,10 @@ void RawFD::Fstat(struct stat& st)
 	if (result == -1)
 		throw errno;
 }
+
+void RawFD::Fchmod(mode_t mode)
+{
+	int result = fchmod(_realfd, mode);
+	if (result == -1)
+		throw errno;
+}

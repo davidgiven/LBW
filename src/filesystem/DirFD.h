@@ -33,6 +33,7 @@ public:
 	virtual int GetDents(void* buffer, size_t count);
 	virtual int GetDents64(void* buffer, size_t count);
 	virtual void Fstat(struct stat& ls);
+	virtual void Fchmod(mode_t mode);
 
 private:
 	Ref<VFSNode> _vfsnode;

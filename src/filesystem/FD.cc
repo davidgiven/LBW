@@ -218,6 +218,11 @@ void FD::Fstat(struct stat& ls)
 	throw EINVAL;
 }
 
+void FD::Fchmod(mode_t mode)
+{
+	throw EINVAL;
+}
+
 int FD::Fcntl(int cmd, u_int32_t argument)
 {
 	error("unsupported fcntl %08x", cmd);

@@ -28,6 +28,7 @@ public:
 	virtual void Truncate(int64_t length);
 
 	void Fstat(struct stat& st);
+	void Fchmod(mode_t mode);
 
 	int Fcntl(int cmd, u_int32_t argument);
 	int Ioctl(int cmd, u_int32_t argument);

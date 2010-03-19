@@ -211,6 +211,16 @@ SYSCALL(sys_ftruncate)
 	return 0;
 }
 
+SYSCALL(sys_fchmod)
+{
+	int fd = arg.a0.u;
+	mode_t mode = arg.a1.u;
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Fchmod(mode);
+	return 0;
+}
+
 SYSCALL(compat_sys_getdents64)
 {
 	unsigned int fd = arg.a0.u;
