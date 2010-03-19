@@ -92,3 +92,33 @@ SYSCALL(compat_sys_setitimer)
 		throw errno;
 	return 0;
 }
+
+SYSCALL(compat_sys_nanosleep)
+{
+	const struct timespec* req = (const struct timespec*) arg.a0.p;
+	struct timespec* rem = (struct timespec*) arg.a1.p;
+
+	struct timeval start;
+	gettimeofday(&start, NULL);
+
+	struct timeval tv;
+	tv.tv_sec = req->tv_sec;
+	tv.tv_usec = req->tv_nsec / 1000;
+
+	int result = select(0, NULL, NULL, NULL, &tv);
+	if (rem)
+	{
+		u64 start_us = (u64)start.tv_sec * 1000000LL + (u64)start.tv_usec;
+
+		gettimeofday(&tv, NULL);
+		u64 now_us = (u64)tv.tv_sec * 1000000LL + (u64)tv.tv_usec;
+		u64 delta_us = now_us - start_us;
+
+		rem->tv_sec = delta_us / 1000000;
+		rem->tv_nsec = (delta_us % 1000000) * 1000;
+	}
+
+	if (result == -1)
+		throw errno;
+	return 0;
+}
