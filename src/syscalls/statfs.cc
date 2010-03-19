@@ -84,7 +84,11 @@ SYSCALL(compat_sys_statfs)
 SYSCALL(compat_sys_statfs64)
 {
 	const char* path = (const char*) arg.a0.p;
-	struct linux_compat_statfs64& ls = *(struct linux_compat_statfs64*) arg.a1.p;
+	size_t sz = arg.a1.u;
+	struct linux_compat_statfs64& ls = *(struct linux_compat_statfs64*) arg.a2.p;
+
+	if (sz != sizeof(struct linux_compat_statfs64))
+		throw EINVAL;
 
 	struct statvfs is;
 	int result = statvfs(path, &is);
