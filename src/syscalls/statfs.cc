@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "syscalls.h"
 #include "filesystem/file.h"
+#include "filesystem/VFS.h"
 #include <sys/statvfs.h>
 
 #pragma pack(push, 1)
@@ -73,9 +74,7 @@ SYSCALL(compat_sys_statfs)
 	struct linux_compat_statfs& ls = *(struct linux_compat_statfs*) arg.a1.p;
 
 	struct statvfs is;
-	int result = statvfs(path, &is);
-	if (result == -1)
-		throw errno;
+	VFS::StatFS(NULL, path, is);
 
 	convert_statvfs(is, ls);
 	return 0;
@@ -91,9 +90,7 @@ SYSCALL(compat_sys_statfs64)
 		throw EINVAL;
 
 	struct statvfs is;
-	int result = statvfs(path, &is);
-	if (result == -1)
-		throw errno;
+	VFS::StatFS(NULL, path, is);
 
 	convert_statvfs(is, ls);
 	return 0;

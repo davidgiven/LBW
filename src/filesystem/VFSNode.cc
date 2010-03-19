@@ -143,6 +143,11 @@ void VFSNode::StatFile(const string& name, struct stat& st)
 	throw ENOENT;
 }
 
+void VFSNode::StatFS(struct statvfs& st)
+{
+	throw EINVAL;
+}
+
 Ref<VFSNode> VFSNode::Traverse(const string& name)
 {
 	throw ENOENT;

@@ -27,6 +27,7 @@ public:
 			int flags = O_RDONLY, int mode = 0, bool nofollow = false);
 
 	static void Stat(VFSNode* cwd, const string& path, struct stat& st);
+	static void StatFS(VFSNode* cwd, const string& path, struct statvfs& st);
 	static void Lstat(VFSNode* cwd, const string& path, struct stat& st);
 	static void MkDir(VFSNode* cwd, const string& path, int mode = 0);
 	static void RmDir(VFSNode* cwd, const string& path);

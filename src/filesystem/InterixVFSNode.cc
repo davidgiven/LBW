@@ -7,6 +7,7 @@
 #include "filesystem/RawFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include <sys/time.h>
+#include <sys/statvfs.h>
 #include <utime.h>
 #include <typeinfo>
 
@@ -60,6 +61,13 @@ void InterixVFSNode::StatFile(const string& name, struct stat& st)
 
 	i = lstat(name.c_str(), &st);
 	if (i == -1)
+		throw errno;
+}
+
+void InterixVFSNode::StatFS(struct statvfs& st)
+{
+	int result = fstatvfs(_realfd, &st);
+	if (result == -1)
 		throw errno;
 }
 

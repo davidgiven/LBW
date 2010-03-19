@@ -118,6 +118,20 @@ void VFS::Stat(VFSNode* cwd, const string& path, struct stat& st)
 	node->StatFile(leaf, st);
 }
 
+void VFS::StatFS(VFSNode* cwd, const string& path, struct statvfs& st)
+{
+#if defined VERBOSE
+	log("%s(%s)", __FUNCTION__, path.c_str());
+#endif
+
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(cwd, path, node, leaf);
+
+	node = node->Traverse(leaf);
+	node->StatFS(st);
+}
+
 void VFS::Lstat(VFSNode* cwd, const string& path, struct stat& st)
 {
 #if defined VERBOSE

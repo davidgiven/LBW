@@ -38,6 +38,7 @@ public:
 
 	int GetFileType(const string& name);
 	virtual void StatFile(const string& name, struct stat& st);
+	virtual void StatFS(struct statvfs& st);
 
 	virtual Ref<VFSNode> Traverse(const string& name);
 	virtual Ref<FD> OpenFile(const string& name, int flags = O_RDONLY,
