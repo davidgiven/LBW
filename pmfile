@@ -12,7 +12,7 @@ HOME = os.getenv("HOME")
 CBUILDFLAGS = {
 	'-Wall',
 	'-Wno-multichar',
-	'-O0',
+	'-O3',
 	'-g',
 	'-fomit-frame-pointer'
 }
