@@ -31,12 +31,8 @@
 #define LINUX_POLLHUP         0x010           /* Hung up.  */
 #define LINUX_POLLNVAL        0x020           /* Invalid polling request.  */
 
-SYSCALL(compat_sys_open)
+static int do_open(VFSNode* node, const char* filename, int flags, int mode)
 {
-	const char* filename = (const char*) arg.a0.p;
-	int flags = arg.a1.s;
-	int mode = arg.a2.s;
-
 	//log("open(%s)", filename);
 
 	bool nofollow = flags & LINUX_O_NOFOLLOW;
@@ -55,6 +51,26 @@ SYSCALL(compat_sys_open)
 	FD::SetCloexec(fd, !!(flags & LINUX_O_CLOEXEC));
 
 	return fd;
+}
+
+SYSCALL(compat_sys_open)
+{
+	const char* filename = (const char*) arg.a0.p;
+	int flags = arg.a1.s;
+	int mode = arg.a2.s;
+
+	return do_open(NULL, filename, flags, mode);
+}
+
+SYSCALL(compat_sys_openat)
+{
+	int dirfd = arg.a0.s;
+	const char* filename = (const char*) arg.a1.p;
+	int flags = arg.a2.s;
+	int mode = arg.a3.s;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	return do_open(node, filename, flags, mode);
 }
 
 SYSCALL(sys_close)

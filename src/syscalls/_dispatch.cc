@@ -164,6 +164,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(268, compat_sys_statfs64);
 		CALL_SYSCALL(270, sys_tgkill);
 		CALL_SYSCALL(271, compat_sys_utimes);
+		CALL_SYSCALL(295, compat_sys_openat);
 		CALL_SYSCALL(299, compat_sys_futimesat);
 		CALL_SYSCALL(300, sys32_fstatat);
 		CALL_SYSCALL(301, sys_unlinkat);
