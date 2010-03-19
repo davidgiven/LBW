@@ -11,11 +11,13 @@
 #include <sys/mman.h>
 #include <map>
 #include <bitset>
+#include <algorithm>
 
 //#define VERBOSE
 
 using std::map;
 using std::bitset;
+using std::min;
 
 /* Linux wants to be able to map files to 4kB page boundaries when loading
  * executables. Alas, Interix can't do that --- it will only let us map stuff
@@ -169,7 +171,11 @@ public:
 			for (u32 i = 0; i < length; i += BLOCK_SIZE)
 			{
 #if defined VERBOSE
-				log("create mapped block %08x", address + i);
+				log("create mapped block %08x, offset %08x, shared=%c w=%c x=%c",
+						address + i, offset + i,
+						shared ? 'y' : 'n',
+						w ? 'y' : 'n',
+						x ? 'y' : 'n');
 #endif
 				Block*& block = GetBlock(address + i);
 				if (block)
@@ -180,7 +186,7 @@ public:
 		}
 		catch (int e)
 		{
-			log("Map() I/O error %d, trying to clean up");
+			log("Map() I/O error %d, trying to clean up", e);
 			Unmap(address, length);
 			throw e;
 		}
@@ -374,9 +380,15 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 #if defined VERBOSE
 			log("aligned!");
 #endif
+			/* Only map what data the file has (or odd stuff happens). */
+
+			struct stat st;
+			fstat(realfd, &st);
+			int reallen = min(offset + len, (u32) st.st_size);
+
 			/* ...although remember we can only mmap() whole blocks. */
 
-			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(len);
+			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(reallen);
 
 			blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
 
