@@ -158,9 +158,9 @@ void InterixVFSNode::RmDir(const string& name)
 int InterixVFSNode::Access(const string& name, int mode)
 {
 	RAIILock locked;
-	setup(name);
+	setup();
 
-	int i = access(name.c_str(), mode);
+	int i = access(name.empty() ? "." : name.c_str(), mode);
 	if (i == -1)
 		throw errno;
 	return i;
