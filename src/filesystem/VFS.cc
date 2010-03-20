@@ -243,6 +243,19 @@ void VFS::Chown(VFSNode* cwd, const string& path, uid_t owner, gid_t group)
 	node->Chown(leaf, owner, group);
 }
 
+void VFS::Lchown(VFSNode* cwd, const string& path, uid_t owner, gid_t group)
+{
+#if defined VERBOSE
+	log("%s(%s)", __FUNCTION__, path.c_str());
+#endif
+
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(cwd, path, node, leaf, false);
+
+	node->Chown(leaf, owner, group);
+}
+
 void VFS::Link(VFSNode* cwd, const string& from, const string& to)
 {
 #if defined VERBOSE

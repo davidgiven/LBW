@@ -75,6 +75,9 @@ int64_t RawFD::Seek(int whence, int64_t offset)
 
 void RawFD::Truncate(int64_t offset)
 {
+	if (offset > 0xffffffffLL)
+		throw EFBIG;
+
 	int i = ftruncate(_realfd, offset);
 	if (i == -1)
 		throw errno;
@@ -110,6 +113,9 @@ void RawFD::Fchmod(mode_t mode)
 
 void RawFD::Fchown(uid_t owner, gid_t group)
 {
+	if (Options.FakeRoot && (owner == 0))
+		return;
+
 	int result = fchown(_realfd, owner, group);
 	if (result == -1)
 		throw errno;

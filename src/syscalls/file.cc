@@ -92,6 +92,16 @@ SYSCALL(sys_chown)
 	return 0;
 }
 
+SYSCALL(sys_lchown)
+{
+	const char* path = (const char*) arg.a0.p;
+	uid_t owner = arg.a1.u;
+	gid_t group = arg.a2.u;
+
+	VFS::Lchown(NULL, path, owner, group);
+	return 0;
+}
+
 SYSCALL(sys_get_cwd)
 {
 	char* buffer = (char*) arg.a0.p;
