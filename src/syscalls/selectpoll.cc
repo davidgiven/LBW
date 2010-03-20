@@ -230,3 +230,19 @@ SYSCALL(compat_sys_select)
 
 	return result;
 }
+
+SYSCALL(compat_sys_pselect6)
+{
+	throw ENOSYS;
+#if 0
+	int fd = arg.a0.s;
+	fd_set* lreads = (fd_set*) arg.a1.p;
+	fd_set* lwrites = (fd_set*) arg.a2.p;
+	fd_set* lexcepts = (fd_set*) arg.a3.p;
+	struct timeval* tv = (struct timeval*) arg.a4.p;
+
+	int n, compat_ulong_t __user *inp,
+		compat_ulong_t __user *outp, compat_ulong_t __user *exp,
+		struct compat_timespec __user *tsp, void __user *sig)
+#endif
+}

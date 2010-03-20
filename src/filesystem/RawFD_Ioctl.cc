@@ -49,14 +49,14 @@
 #define LINUX_TIOCSBRK	0x5427  /* BSD compatibility */
 #define LINUX_TIOCCBRK	0x5428  /* BSD compatibility */
 #define LINUX_TIOCGSID	0x5429  /* Return the session ID of FD */
-#define LINUX_TCGETS2		_IOR('T', 0x2A, struct termios2)
-#define LINUX_TCSETS2		_IOW('T', 0x2B, struct termios2)
-#define LINUX_TCSETSW2	_IOW('T', 0x2C, struct termios2)
-#define LINUX_TCSETSF2	_IOW('T', 0x2D, struct termios2)
+//#define LINUX_TCGETS2		_IOR('T', 0x2A, struct termios2)
+//#define LINUX_TCSETS2		_IOW('T', 0x2B, struct termios2)
+//#define LINUX_TCSETSW2	_IOW('T', 0x2C, struct termios2)
+//#define LINUX_TCSETSF2	_IOW('T', 0x2D, struct termios2)
 #define LINUX_TIOCGRS485	0x542E
 #define LINUX_TIOCSRS485	0x542F
-#define LINUX_TIOCGPTN	_IOR('T', 0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
-#define LINUX_TIOCSPTLCK	_IOW('T', 0x31, int)  /* Lock/unlock Pty */
+//#define LINUX_TIOCGPTN	_IOR('T', 0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+//#define LINUX_TIOCSPTLCK	_IOW('T', 0x31, int)  /* Lock/unlock Pty */
 #define LINUX_TCGETX		0x5432 /* SYS5 TCGETX compatibility */
 #define LINUX_TCSETX		0x5433
 #define LINUX_TCSETXF		0x5434
@@ -79,6 +79,8 @@
 #define LINUX_TIOCGICOUNT	0x545D	/* read serial port inline interrupt counts */
 
 #define LINUX_SIOCGSTAMP    0x8906
+
+#define LINUX_TIOCGPTN      0x80045430
 
 int RawFD::Ioctl(int cmd, u_int32_t argument)
 {

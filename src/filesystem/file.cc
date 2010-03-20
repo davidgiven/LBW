@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "file.h"
+#include <sys/mkdev.h>
 
 u_int32_t FileFlagsL2I(u_int32_t flags)
 {
@@ -72,7 +73,7 @@ void Convert(struct stat& is, struct linux_stat64& ls)
 	ls.st_nlink = is.st_nlink;
 	ls.st_uid = is.st_uid;
 	ls.st_gid = is.st_gid;
-	ls.st_rdev = is.st_rdev;
+	ls.st_rdev = (major(is.st_rdev)<<8) | minor(is.st_rdev);
 	ls.st_size = is.st_size;
 	ls.st_blksize = is.st_blksize;
 	ls.st_blocks = is.st_blocks;

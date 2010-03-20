@@ -60,6 +60,8 @@ lbw = cxxprogram {
 	cxxfile "src/filesystem/RootVFSNode.cc",
 	cxxfile "src/filesystem/InterixVFSNode.cc",
 	cxxfile "src/filesystem/DevVFSNode.cc",
+	cxxfile "src/filesystem/FakeVFSNode.cc",
+	cxxfile "src/filesystem/FakeFile.cc",
 	cxxfile "src/syscalls/_dispatch.cc",
 	cxxfile "src/syscalls/_names.cc",
 	cxxfile "src/syscalls/process.cc",
