@@ -312,6 +312,11 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 {
 	RAIILock locked;
 
+#if defined VERBOSE
+	log("mmap(%p, %p, %p, %p, fdo %p, %p)",
+			addr, len, prot, flags, (FD*) ref, offset);
+#endif
+
 	if (!MemOp::Aligned<PAGE_SIZE>(addr))
 		throw EINVAL;
 	if (!MemOp::Aligned<PAGE_SIZE>(offset))
@@ -384,13 +389,20 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 
 			struct stat st;
 			fstat(realfd, &st);
-			int reallen = min(offset + len, (u32) st.st_size);
+			int reallen = min(len, (u32) st.st_size - offset);
+#if defined VERBOSE
+			log("file length is %p, actually mapping %p", st.st_size, reallen);
+#endif
 
 			/* ...although remember we can only mmap() whole blocks. */
 
 			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(reallen);
+#if defined VERBOSE
+			log("...which aligned is %p", alignedlen);
+#endif
 
-			blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
+			if (alignedlen > 0)
+				blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
 
 			/* The rest gets loaded into a fragmented block. */
 
