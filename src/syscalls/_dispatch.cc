@@ -140,6 +140,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(186, stub32_sigaltstack);
 		CALL_SYSCALL(191, compat_sys_getrlimit);
 		CALL_SYSCALL(192, sys32_mmap2);
+		CALL_SYSCALL(194, sys32_ftruncate64);
 		CALL_SYSCALL(195, sys32_stat64);
 		CALL_SYSCALL(196, sys32_lstat64);
 		CALL_SYSCALL(197, sys32_fstat64);

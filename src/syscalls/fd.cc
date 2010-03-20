@@ -249,6 +249,16 @@ SYSCALL(sys_ftruncate)
 	return 0;
 }
 
+SYSCALL(sys32_ftruncate64)
+{
+	int fd = arg.a0.u;
+	u64 length = (u64)arg.a1.u | ((u64)arg.a2.u << 32);
+
+	Ref<FD> fdo = FD::Get(fd);
+	fdo->Truncate(length);
+	return 0;
+}
+
 SYSCALL(sys_fchmod)
 {
 	int fd = arg.a0.u;
