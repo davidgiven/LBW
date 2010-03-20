@@ -176,3 +176,17 @@ void DirFD::Fchmod(mode_t mode)
 {
 	_vfsnode->Chmod(".", mode);
 }
+
+int DirFD::Fcntl(int cmd, u_int32_t argument)
+{
+	switch (cmd)
+	{
+		case LINUX_F_GETFL:
+			return LINUX_O_RDONLY | LINUX_O_DIRECTORY;
+
+		case LINUX_F_SETFL:
+			throw EINVAL;
+	}
+
+	return FD::Fcntl(cmd, argument);
+}

@@ -6,7 +6,7 @@
 #ifndef DIRFD_H
 #define DIRFD_H
 
-#include "FileFD.h"
+#include "RawFD.h"
 #include <deque>
 #include <dirent.h>
 
@@ -34,6 +34,8 @@ public:
 	virtual int GetDents64(void* buffer, size_t count);
 	virtual void Fstat(struct stat& ls);
 	virtual void Fchmod(mode_t mode);
+
+	virtual int Fcntl(int cmd, u_int32_t argument);
 
 private:
 	Ref<VFSNode> _vfsnode;

@@ -105,6 +105,12 @@ Ref<FD> InterixVFSNode::OpenFile(const string& name, int flags,	int mode)
 	RAIILock locked;
 	setup(name, EISDIR);
 
+	/* Never allow opening directories --- you need to create a DirFD
+	 * for this VFSNode instead.
+	 */
+	if (GetFileType(name) == DIRECTORY)
+		throw EISDIR;
+
 	//log("opening interix file <%s>", name.c_str());
 	Ref<RawFD> ref = new RawFD();
 	ref->Open(name, flags, mode);
@@ -146,6 +152,11 @@ string InterixVFSNode::ReadLink(const string& name)
 void InterixVFSNode::MkDir(const string& name, int mode)
 {
 	RAIILock locked;
+
+	/* Succeed silently if trying to make the current directory. */
+	if (name == ".")
+		return;
+
 	setup(name);
 
 	int i = mkdir(name.c_str(), mode);

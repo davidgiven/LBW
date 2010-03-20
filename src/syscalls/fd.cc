@@ -39,17 +39,30 @@ static int do_open(VFSNode* node, const char* filename, int flags, int mode)
 
 	Ref<FD> ref;
 	if (flags & LINUX_O_DIRECTORY)
-		ref = VFS::OpenDirectory(NULL, filename, nofollow);
+		ref = VFS::OpenDirectory(node, filename, nofollow);
 	else
 	{
-		int iflags = FileFlagsL2I(flags);
-		ref = VFS::OpenFile(NULL, filename, iflags, mode, nofollow);
+		try
+		{
+			int iflags = FileFlagsL2I(flags);
+			ref = VFS::OpenFile(node, filename, iflags, mode, nofollow);
+		}
+		catch (int e)
+		{
+			if (e == EISDIR)
+			{
+				/* The user has tried to open a directory without the
+				 * LINUX_O_DIRECTORY flag.
+				 */
+				ref = VFS::OpenDirectory(node, filename, nofollow);
+			}
+			else
+				throw e;
+		}
 	}
 
 	int fd = FD::New(ref);
-
 	FD::SetCloexec(fd, !!(flags & LINUX_O_CLOEXEC));
-
 	return fd;
 }
 
