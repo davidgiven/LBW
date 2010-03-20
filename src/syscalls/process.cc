@@ -146,6 +146,68 @@ SYSCALL(sys_getegid16)
 	return high2lowgid(getegid());
 }
 
+SYSCALL(sys_setreuid)
+{
+	uid_t ruid = arg.a0.s;
+	uid_t euid = arg.a1.s;
+
+	if (Options.FakeRoot)
+		return 0;
+
+	int i = setreuid(ruid, euid);
+	if (i == -1)
+		throw errno;
+	return 0;
+}
+
+SYSCALL(sys_setregid)
+{
+	gid_t rgid = arg.a0.s;
+	gid_t egid = arg.a1.s;
+
+	if (Options.FakeRoot)
+		return 0;
+
+	int i = setregid(rgid, egid);
+	if (i == -1)
+		throw errno;
+	return 0;
+}
+
+SYSCALL(sys_setresuid)
+{
+	uid_t ruid = arg.a0.s;
+	uid_t euid = arg.a1.s;
+	uid_t suid = arg.a2.s;
+
+	if (Options.FakeRoot)
+		return 0;
+
+	int i = setreuid(ruid, euid);
+	if (i == -1)
+		throw errno;
+	if (suid != 0xffffffff)
+		Warning("setresgid() cannot set suid yet");
+	return 0;
+}
+
+SYSCALL(sys_setresgid)
+{
+	gid_t rgid = arg.a0.s;
+	gid_t egid = arg.a1.s;
+	gid_t sgid = arg.a2.s;
+
+	if (Options.FakeRoot)
+		return 0;
+
+	int i = setregid(rgid, egid);
+	if (i == -1)
+		throw errno;
+	if (sgid != 0xffffffff)
+		Warning("setresgid() cannot set sgid yet");
+	return 0;
+}
+
 SYSCALL(sys_getgroups)
 {
 	int gidsetsize = arg.a0.s;

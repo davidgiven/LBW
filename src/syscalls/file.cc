@@ -182,10 +182,10 @@ SYSCALL(sys_unlinkat)
 
 SYSCALL(sys_symlink)
 {
-	const char* path1 = (const char*) arg.a0.p;
-	const char* path2 = (const char*) arg.a1.p;
+	const char* to = (const char*) arg.a0.p;
+	const char* from = (const char*) arg.a1.p;
 
-	VFS::Symlink(NULL, path1, path2);
+	VFS::Symlink(NULL, to, from);
 	return 0;
 }
 
