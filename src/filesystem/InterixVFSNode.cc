@@ -261,7 +261,7 @@ void InterixVFSNode::Symlink(const string& name, const string& target)
 	RAIILock locked;
 	setup(name);
 
-	int i = symlink(name.c_str(), target.c_str());
+	int i = symlink(target.c_str(), name.c_str());
 	if (i == -1)
 		throw errno;
 }

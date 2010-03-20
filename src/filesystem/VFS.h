@@ -39,7 +39,7 @@ public:
 	static void Lchown(VFSNode* cwd, const string& path, uid_t owner, gid_t group);
 	static void Link(VFSNode* cwd, const string& from, const string& to);
 	static void Unlink(VFSNode* cwd, const string& path);
-	static void Symlink(VFSNode* cwd, const string& from, const string& to);
+	static void Symlink(VFSNode* cwd, const string& to, const string& from);
 	static void Utimes(VFSNode* cwd, const string& path, const struct timeval times[2]);
 };
 

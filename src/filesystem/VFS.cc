@@ -289,7 +289,7 @@ void VFS::Unlink(VFSNode* cwd, const string& path)
 	node->Unlink(leaf);
 }
 
-void VFS::Symlink(VFSNode* cwd, const string& from, const string& to)
+void VFS::Symlink(VFSNode* cwd, const string& to, const string& from)
 {
 #if defined VERBOSE
 	log("%s(%s, %s)", __FUNCTION__, from.c_str(), to.c_str());
