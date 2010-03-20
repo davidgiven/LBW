@@ -50,6 +50,7 @@ public:
 	virtual int Access(const string& name, int mode);
 	virtual void Rename(const string& from, VFSNode* tonode, const string& to);
 	virtual void Chmod(const string& name, int mode);
+	virtual void Chown(const string& name, uid_t owner, gid_t group);
 	virtual void Link(const string& from, VFSNode* tonode, const string& to);
 	virtual void Unlink(const string& name);
 	virtual void Symlink(const string& name, const string& target);

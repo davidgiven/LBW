@@ -200,6 +200,12 @@ void VFSNode::Chmod(const string& name, int mode)
 	throw EINVAL;
 }
 
+void VFSNode::Chown(const string& name, uid_t owner, gid_t group)
+{
+	assert(false);
+	throw EINVAL;
+}
+
 void VFSNode::Link(const string& from, VFSNode* tonode, const string& to)
 {
 	assert(false);

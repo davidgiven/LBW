@@ -34,6 +34,7 @@ public:
 	int Access(const string& name, int mode);
 	void Rename(const string& from, VFSNode* other, const string& to);
 	void Chmod(const string& name, int mode);
+	void Chown(const string& name, uid_t owner, gid_t group);
 	void Link(const string& from, VFSNode* other, const string& to);
 	void Unlink(const string& name);
 	void Symlink(const string& name, const string& target);

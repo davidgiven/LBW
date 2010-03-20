@@ -207,9 +207,22 @@ void InterixVFSNode::Rename(const string& from, VFSNode* other, const string& to
 void InterixVFSNode::Chmod(const string& name, int mode)
 {
 	RAIILock locked;
-	setup(name);
+	setup();
 
 	int i = chmod(name.c_str(), mode);
+	if (i == -1)
+		throw errno;
+}
+
+void InterixVFSNode::Chown(const string& name, uid_t owner, gid_t group)
+{
+	RAIILock locked;
+	setup();
+
+	if (Options.FakeRoot && (owner == 0))
+		return;
+
+	int i = chown(name.c_str(), owner, group);
 	if (i == -1)
 		throw errno;
 }
@@ -257,7 +270,7 @@ void InterixVFSNode::Symlink(const string& name, const string& target)
 void InterixVFSNode::Utimes(const string& name, const struct timeval times[2])
 {
 	RAIILock locked;
-	setup(name);
+	setup();
 
 	/* Interix doesn't support times(), even though the docs say it does! */
 
