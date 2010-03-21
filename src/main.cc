@@ -183,7 +183,7 @@ int main(int argc, const char* argv[], const char* environ[])
 	 * problems caused by our own file descriptors.
 	 */
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 100; i++)
 		add_std_fd(i);
 
 	if (getenv("LBW_CHILD"))
