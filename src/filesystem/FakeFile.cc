@@ -39,6 +39,37 @@ int FakeFile::Access(int mode)
 	throw EINVAL;
 }
 
+FakeDirectory::FakeDirectory(VFSNode* node):
+		_node(node)
+{
+}
+
+FakeDirectory::~FakeDirectory()
+{
+}
+
+string FakeDirectory::GetName()
+{
+	return _node->GetName();
+}
+
+Ref<VFSNode> FakeDirectory::OpenDirectory(VFSNode* parent)
+{
+	return _node;
+}
+
+void FakeDirectory::Stat(struct stat& st)
+{
+	memset(&st, 0, sizeof(st));
+	st.st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IRWXO;
+	st.st_ino = 1;
+}
+
+int FakeDirectory::Access(int mode)
+{
+	return mode;
+}
+
 TunnelledFakeFileOrDirectory::TunnelledFakeFileOrDirectory(
 			const string& localname, const string& destname):
 		_localname(localname),

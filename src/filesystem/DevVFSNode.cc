@@ -7,6 +7,7 @@
 #include "filesystem/RawFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/DevVFSNode.h"
+#include "filesystem/PtsVFSNode.h"
 #include "filesystem/FakeFile.h"
 
 struct DevFile
@@ -30,7 +31,8 @@ static const DevFile devices[] =
 #define lengthof(array) (sizeof(array) / sizeof(*array))
 
 DevVFSNode::DevVFSNode(VFSNode* parent, const string& name):
-	FakeVFSNode(parent, name)
+	FakeVFSNode(parent, name),
+	_ptsnode(new PtsVFSNode(this, "pts"))
 {
 	for (size_t i = 0; i < lengthof(devices); i++)
 	{
@@ -66,6 +68,8 @@ DevVFSNode::DevVFSNode(VFSNode* parent, const string& name):
 		}
 		closedir(d);
 	}
+
+	AddDirectory(_ptsnode);
 }
 
 DevVFSNode::~DevVFSNode()

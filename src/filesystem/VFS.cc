@@ -128,7 +128,9 @@ void VFS::StatFS(VFSNode* cwd, const string& path, struct statvfs& st)
 	string leaf;
 	Resolve(cwd, path, node, leaf);
 
-	node = node->Traverse(leaf);
+	if (node->GetFileType(leaf) == VFSNode::DIRECTORY)
+		node = node->Traverse(leaf);
+
 	node->StatFS(st);
 }
 

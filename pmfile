@@ -13,8 +13,9 @@ CBUILDFLAGS = {
 	'-Wall',
 	'-Wno-multichar',
 	'-O3',
-	'-g',
-	'-fomit-frame-pointer'
+	'-fomit-frame-pointer',
+	'-ffunction-sections',
+	'-fdata-sections'
 }
 
 CLIBRARIES = {
@@ -22,7 +23,8 @@ CLIBRARIES = {
 }
 
 CDEFINES = {
-	'_ALL_SOURCE'
+	'_ALL_SOURCE',
+	'_REENTRANT'
 }
 	
 CINCLUDES = {
@@ -60,6 +62,7 @@ lbw = cxxprogram {
 	cxxfile "src/filesystem/RootVFSNode.cc",
 	cxxfile "src/filesystem/InterixVFSNode.cc",
 	cxxfile "src/filesystem/DevVFSNode.cc",
+	cxxfile "src/filesystem/PtsVFSNode.cc",
 	cxxfile "src/filesystem/FakeVFSNode.cc",
 	cxxfile "src/filesystem/FakeFile.cc",
 	cxxfile "src/syscalls/_dispatch.cc",

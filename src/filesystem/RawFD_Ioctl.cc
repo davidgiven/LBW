@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "RawFD.h"
 #include "termios.h"
+#include <stdlib.h>
 #include <sys/ioctl.h>
 
 #define LINUX_TCGETS		0x5401
@@ -80,6 +81,7 @@
 
 #define LINUX_SIOCGSTAMP    0x8906
 
+#define LINUX_TIOCSPTLCK    0x40045431
 #define LINUX_TIOCGPTN      0x80045430
 
 int RawFD::Ioctl(int cmd, u_int32_t argument)
@@ -140,6 +142,35 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 
 		case LINUX_SIOCGSTAMP:
 			throw EINVAL;
+
+		/* PTY related */
+
+		case LINUX_TIOCGPTN:
+		{
+			char buffer[32];
+			memset(buffer, 0, sizeof(buffer));
+			if (ptsname_r(_realfd, buffer, sizeof(buffer)) != 0)
+				throw EINVAL;
+
+			/* Interix doesn't use pty numbers, instead returning a handle to
+			 * a /dev/tty* device with an obscure name. Linux wants a number
+			 * so it can open /dev/pts/X. So, we encode the part of the name
+			 * that identifies the tty device into the number. See PtsVFSNode.
+			 */
+
+			u32& number = *(u32*) (buffer + 8);
+			*(u32*)argument = number;
+
+			return 0;
+		}
+
+		case LINUX_TIOCSPTLCK:
+		{
+			int& i = *(int*) argument;
+
+			Warning("Unsupported call to TIOCSPTLCK(%d, %d)", _realfd, i);
+			return 0;
+		}
 
 		default:
 			return FD::Ioctl(cmd, argument);

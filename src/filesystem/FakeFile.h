@@ -24,6 +24,22 @@ public:
 	virtual int Access(int mode);
 };
 
+class FakeDirectory : public FakeFile
+{
+public:
+	FakeDirectory(VFSNode* node);
+	~FakeDirectory();
+
+public:
+	string GetName();
+	Ref<VFSNode> OpenDirectory(VFSNode* parent);
+	void Stat(struct stat& st);
+	int Access(int mode);
+
+private:
+	Ref<VFSNode> _node;
+};
+
 class TunnelledFakeFileOrDirectory : public FakeFile
 {
 public:

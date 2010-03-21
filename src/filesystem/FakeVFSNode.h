@@ -20,6 +20,8 @@ public:
 	~FakeVFSNode();
 
 public:
+	void StatFS(struct statvfs& st);
+
 	void StatFile(const string& name, struct stat& st);
 	Ref<VFSNode> Traverse(const string& name);
 	Ref<FD> OpenFile(const string& name, int flags = O_RDONLY,
@@ -29,6 +31,7 @@ public:
 
 public:
 	void AddFile(FakeFile* file);
+	void AddDirectory(VFSNode* node);
 
 private:
 	typedef map<string, Ref<FakeFile> > FilesMap;

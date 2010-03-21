@@ -160,72 +160,60 @@ Ref<FD> VFSNode::OpenFile(const string& name, int flags, int mode)
 
 string VFSNode::ReadLink(const string& name)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 deque<string> VFSNode::Enumerate()
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::MkDir(const string& name, int mode)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::RmDir(const string& name)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 int VFSNode::Access(const string& name, int mode)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Rename(const string& from, VFSNode* tonode, const string& to)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Chmod(const string& name, int mode)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Chown(const string& name, uid_t owner, gid_t group)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Link(const string& from, VFSNode* tonode, const string& to)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Unlink(const string& name)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Symlink(const string& name, const string& target)
 {
-	assert(false);
 	throw EINVAL;
 }
 
 void VFSNode::Utimes(const string& name, const struct timeval times[2])
 {
-	assert(false);
 	throw EINVAL;
 }

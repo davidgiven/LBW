@@ -37,6 +37,7 @@ int ErrnoI2L(int e)
 		case ESPIPE:          return LINUX_ESPIPE;
 		case ESRCH:           return LINUX_ESRCH;
 		case ETIMEDOUT:       return LINUX_ETIMEDOUT;
+		case ETXTBSY:         return LINUX_ETXTBSY;
 		case EXDEV:           return LINUX_EXDEV;
 	}
 

@@ -8,6 +8,7 @@
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/FakeVFSNode.h"
 #include "filesystem/FakeFile.h"
+#include <sys/statvfs.h>
 
 FakeVFSNode::FakeVFSNode(VFSNode* parent, const string& name):
 	VFSNode(parent, name)
@@ -22,6 +23,16 @@ void FakeVFSNode::AddFile(FakeFile* file)
 {
 	string name = file->GetName();
 	_files[name] = file;
+}
+
+void FakeVFSNode::AddDirectory(VFSNode* node)
+{
+	AddFile(new FakeDirectory(node));
+}
+
+void FakeVFSNode::StatFS(struct statvfs& st)
+{
+	memset(&st, 0, sizeof(st));
 }
 
 void FakeVFSNode::StatFile(const string& name, struct stat& st)

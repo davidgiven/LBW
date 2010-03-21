@@ -7,15 +7,17 @@
 #define DEVVFSNODE_H
 
 #include "FakeVFSNode.h"
-#include <map>
 
-using std::map;
+class PtsVFSNode;
 
 class DevVFSNode : public FakeVFSNode
 {
 public:
 	DevVFSNode(VFSNode* parent, const string& name);
 	~DevVFSNode();
+
+public:
+	Ref<VFSNode> _ptsnode;
 };
 
 #endif
