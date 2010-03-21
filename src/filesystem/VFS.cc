@@ -24,19 +24,19 @@ Ref<VFSNode> VFS::GetRootNode()
 	return (VFSNode*) root;
 }
 
-void VFS::SetCWD(const string& path)
+void VFS::SetCWD(VFSNode* cwd, const string& path)
 {
 	RAIILock locked;
 
 #if defined VERBOSE
-	log("SetCWD(%s)", path.c_str());
+	log("SetCWD(%p, %s)", cwd, path.c_str());
 #endif
 
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(NULL, path, node, leaf);
+	Resolve(cwd, path, node, leaf);
 
-	cwd = node->Traverse(leaf);
+	::cwd = node->Traverse(leaf);
 }
 
 string VFS::GetCWD()

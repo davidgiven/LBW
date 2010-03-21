@@ -5,8 +5,11 @@
 
 #include "globals.h"
 #include "syscalls.h"
+#include <stdexcept>
 
 //#define VERBOSE
+
+using std::logic_error;
 
 extern "C" int32_t Linux_MCE_Handler(Registers& regs)
 	__attribute__ ((regparm (1)))
@@ -125,6 +128,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(120, sys32_clone);
 		CALL_SYSCALL(122, sys_uname);
 		CALL_SYSCALL(125, sys32_mprotect);
+		CALL_SYSCALL(133, sys_fchdir);
 		CALL_SYSCALL(136, sys_personality);
 		CALL_SYSCALL(140, sys_llseek);
 		CALL_SYSCALL(141, compat_sys_getdents);
@@ -207,5 +211,9 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		log("-> (failed) %d", -ErrnoI2L(e));
 #endif
 		return -ErrnoI2L(e);
+	}
+	catch (logic_error e)
+	{
+		error("internal error: %s", e.what());
 	}
 }

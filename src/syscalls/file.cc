@@ -117,9 +117,18 @@ SYSCALL(sys_get_cwd)
 
 SYSCALL(sys_chdir)
 {
-	const char* buffer = (const char*) arg.a0.p;
+	const char* path = (const char*) arg.a0.p;
 
-	VFS::SetCWD(buffer);
+	VFS::SetCWD(NULL, path);
+	return 0;
+}
+
+SYSCALL(sys_fchdir)
+{
+	int dirfd = arg.a0.s;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	VFS::SetCWD(node, ".");
 	return 0;
 }
 

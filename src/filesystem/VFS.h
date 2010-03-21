@@ -14,7 +14,7 @@ public:
 	static void SetRoot(const string& path);
 	static Ref<VFSNode> GetRootNode();
 
-	static void SetCWD(const string& path);
+	static void SetCWD(VFSNode* cwd, const string& path);
 	static string GetCWD();
 	static Ref<VFSNode> GetCWDNode();
 
