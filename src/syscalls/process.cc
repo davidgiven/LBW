@@ -238,6 +238,10 @@ static int convert_resource_l2i(int resource)
 /* struct rlimit and struct linux_compat_rlimit are compatible */
 SYSCALL(compat_sys_getrlimit)
 {
+	Warning("getrlimit() not supported yet");
+	throw ENOSYS;
+
+#if 0 // FIXME: disabled; apparently struct rlimit isn't compatible after all.
 	int resource = arg.a0.s;
 	struct rlimit* limit = (struct rlimit*) arg.a1.p;
 
@@ -245,13 +249,14 @@ SYSCALL(compat_sys_getrlimit)
 	if (iresource == -1)
 	{
 		Warning("getrlimit(%d) unsupported on Interix", resource);
-		return -LINUX_EINVAL;
+		throw EINVAL;
 	}
 
 	int result = getrlimit(iresource, limit);
 	if (result == -1)
 		throw errno;
 	return 0;
+#endif
 }
 
 SYSCALL(sys_getpgrp)
