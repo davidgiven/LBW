@@ -208,6 +208,14 @@ SYSCALL(sys_setresgid)
 	return 0;
 }
 
+SYSCALL(sys_setsid)
+{
+	pid_t session = setsid();
+	if (session == -1)
+		throw errno;
+	return session;
+}
+
 SYSCALL(sys_getgroups)
 {
 	int gidsetsize = arg.a0.s;
