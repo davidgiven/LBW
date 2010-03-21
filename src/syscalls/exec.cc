@@ -14,5 +14,11 @@ SYSCALL(sys32_execve)
 	const char** argv = (const char**) arg.a1.p;
 	const char** envp = (const char**) arg.a2.p;
 
+	const char* emptyset = NULL;
+	if (!argv)
+		argv = &emptyset;
+	if (!envp)
+		envp = &emptyset;
+
 	Exec(path, argv, envp);
 }
