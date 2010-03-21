@@ -117,6 +117,12 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 			goto common;
 		}
 
+		case LINUX_TIOCSCTTY:
+		{
+			result = ioctl(_realfd, TIOCSCTTY, 0);
+			goto common;
+		}
+
 		case LINUX_TIOCGPGRP:
 		{
 			int& pgrp = *(int*) argument;
