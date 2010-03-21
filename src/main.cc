@@ -210,7 +210,7 @@ int main(int argc, const char* argv[], const char* environ[])
 
 		s = getenv("LBW_CWD");
 		if (s)
-			VFS::SetCWD(s);
+			VFS::SetCWD(NULL, s);
 		unsetenv("LBW_CWD");
 
 		s = getenv("LBW_LBWEXE");
@@ -250,7 +250,7 @@ int main(int argc, const char* argv[], const char* environ[])
 		Options.FakeRoot = ap.FakeRoot;
 		Options.Warnings = ap.Warnings;
 		VFS::SetRoot(Options.Chroot);
-		VFS::SetCWD(ap.CWD);
+		VFS::SetCWD(NULL, ap.CWD);
 
 		if (argc == 0)
 			Error("lbw: you must specify a binary to run. Try --help.");
