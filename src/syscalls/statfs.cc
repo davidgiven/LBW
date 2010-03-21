@@ -87,7 +87,10 @@ SYSCALL(compat_sys_statfs64)
 	struct linux_compat_statfs64& ls = *(struct linux_compat_statfs64*) arg.a2.p;
 
 	if (sz != sizeof(struct linux_compat_statfs64))
+	{
+		Warning("statsfs64() called with unsupported data size %08x", sz);
 		throw EINVAL;
+	}
 
 	struct statvfs is;
 	VFS::StatFS(NULL, path, is);
