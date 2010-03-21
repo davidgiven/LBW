@@ -259,6 +259,12 @@ SYSCALL(compat_sys_getrlimit)
 #endif
 }
 
+SYSCALL(compat_sys_getrusage)
+{
+	Warning("getrusage() not supported yet");
+	throw ENOSYS;
+}
+
 SYSCALL(sys_getpgrp)
 {
 	return getpgrp();
