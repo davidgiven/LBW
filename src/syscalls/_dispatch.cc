@@ -112,6 +112,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 63, sys_dup2);
 		CALL_SYSCALL( 64, sys_getppid);
 		CALL_SYSCALL( 65, sys_getpgrp);
+		CALL_SYSCALL( 75, compat_sys_setrlimit);
 		CALL_SYSCALL( 77, compat_sys_getrusage);
 		CALL_SYSCALL( 78, compat_sys_gettimeofday);
 		CALL_SYSCALL( 83, sys_symlink);
