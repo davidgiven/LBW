@@ -57,6 +57,26 @@ SYSCALL(stub32_fork)
 	return result;
 }
 
+SYSCALL(stub32_vfork)
+{
+	int result = fork(); /* vfork doesn't work */
+
+	switch (result)
+	{
+		case 0: /* child */
+			InitProcess();
+			InstallExceptionHandler();
+			//error("fork() needs work");
+			//StartMonitor();
+			break;
+
+		case -1: /* error */
+			throw errno;
+	}
+
+	return result;
+}
+
 SYSCALL(sys32_clone)
 {
 	u32 clone_flags = arg.a0.u;
