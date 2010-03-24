@@ -92,6 +92,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 19, sys32_lseek);
 		CALL_SYSCALL( 20, sys_getpid);
 		CALL_SYSCALL( 24, sys_getuid16);
+		CALL_SYSCALL( 27, sys_alarm);
 		CALL_SYSCALL( 30, compat_sys_utime);
 		CALL_SYSCALL( 33, sys_access);
 		CALL_SYSCALL( 36, sys_sync);

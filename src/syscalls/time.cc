@@ -122,3 +122,12 @@ SYSCALL(compat_sys_nanosleep)
 		throw errno;
 	return 0;
 }
+
+SYSCALL(sys_alarm)
+{
+	unsigned int t = arg.a0.u;
+
+	int i = alarm(t);
+	CheckError(i);
+	return 0;
+}
