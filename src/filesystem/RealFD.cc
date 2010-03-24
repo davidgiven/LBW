@@ -161,7 +161,7 @@ void RealFD::Connect(const struct sockaddr* sa, int addrlen)
 			if (!inode)
 				throw EINVAL;
 
-			int i = fchdir(inode->GetRealFD());
+			int i = chdir(inode->GetRealPath().c_str());
 			if (i == -1)
 				throw errno;
 

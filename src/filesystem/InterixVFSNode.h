@@ -19,8 +19,7 @@ private:
 	void init(VFSNode* parent, const string& name, const string& path);
 
 public:
-	int GetRealFD() { return _realfd; }
-	string GetRealPath();
+	const string& GetRealPath() { return _path; }
 
 	void StatFile(const string& name, struct stat& st);
 	void StatFS(struct statvfs& st);
@@ -46,7 +45,7 @@ private:
 	void setup(const string& name, int e = EINVAL);
 
 private:
-	int _realfd;
+	string _path;
 };
 
 #endif

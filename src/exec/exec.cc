@@ -178,7 +178,7 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 		Ref<VFSNode> node = VFS::GetCWDNode();
 		InterixVFSNode* inode = dynamic_cast<InterixVFSNode*>((VFSNode*) node);
 		if (inode)
-			fchdir(inode->GetRealFD());
+			chdir(inode->GetRealPath().c_str());
 		else
 			chdir("/");
 

@@ -150,6 +150,14 @@ int main(int argc, const char* argv[], const char* environ[])
 {
 	string linuxfile;
 
+#if 0
+	for (int i=0; i<100; i++)
+	{
+		if (fcntl(i, F_GETFD, 0) != -1)
+			log("fd %d is live", i);
+	}
+#endif
+
 	if (getenv("LBW_CHILD"))
 	{
 		unsetenv("LBW_CHILD");

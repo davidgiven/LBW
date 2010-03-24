@@ -27,29 +27,23 @@ InterixVFSNode::InterixVFSNode(VFSNode* parent, const string& name):
 
 void InterixVFSNode::init(VFSNode* parent, const string& name, const string& path)
 {
-	_realfd = open(path.c_str(), O_RDONLY);
-	//log("open(%s) -> realfd %d", path.c_str(), _realfd);
-	if (_realfd == -1)
-		throw errno;
+	if (!path.empty() && (path[0] == '/'))
+		_path = path;
+	else
+	{
+		InterixVFSNode* iparent = dynamic_cast<InterixVFSNode*>(parent);
+		assert(iparent);
+		_path = iparent->GetRealPath() + "/" + path;
+	}
 
-	fcntl(_realfd, F_SETFD, FD_CLOEXEC);
+	/* Ensure that the path is openable. */
+
+	int i = chdir(_path.c_str());
+	CheckError(i);
 }
 
 InterixVFSNode::~InterixVFSNode()
 {
-	//log("close(%d)", _realfd);
-	close(_realfd);
-}
-
-string InterixVFSNode::GetRealPath()
-{
-	setup();
-
-	char buffer[PATH_MAX];
-	char* p = getcwd(buffer, sizeof(buffer));
-	if (!p)
-		throw errno;
-	return buffer;
 }
 
 void InterixVFSNode::StatFile(const string& name, struct stat& st)
@@ -57,20 +51,15 @@ void InterixVFSNode::StatFile(const string& name, struct stat& st)
 	if (name == "..")
 		return GetParent()->StatFile(".", st);
 
-	int i = fchdir(_realfd);
-	if (i == -1)
-		throw errno;
-
-	i = lstat(name.c_str(), &st);
-	if (i == -1)
-		throw errno;
+	setup();
+	int i = lstat(name.c_str(), &st);
+	CheckError(i);
 }
 
 void InterixVFSNode::StatFS(struct statvfs& st)
 {
-	int result = fstatvfs(_realfd, &st);
-	if (result == -1)
-		throw errno;
+	int result = statvfs(_path.c_str(), &st);
+	CheckError(result);
 }
 
 Ref<VFSNode> InterixVFSNode::Traverse(const string& name)
@@ -80,19 +69,13 @@ Ref<VFSNode> InterixVFSNode::Traverse(const string& name)
 	else if (name == "..")
 		return GetParent();
 
-	int i = fchdir(_realfd);
-//	log("%s(%s/%s) -> %d %d", __FUNCTION__, GetRealPath().c_str(), name.c_str(), i, errno);
-	if (i == -1)
-		throw errno;
-
 	return new InterixVFSNode(this, name);
 }
 
 void InterixVFSNode::setup()
 {
-	int i = fchdir(_realfd);
-	if (i == -1)
-		throw errno;
+	int i = chdir(_path.c_str());
+	CheckError(i);
 }
 
 void InterixVFSNode::setup(const string& name, int e)
@@ -104,7 +87,7 @@ void InterixVFSNode::setup(const string& name, int e)
 
 Ref<FD> InterixVFSNode::OpenDirectory()
 {
-	int newfd = dup(_realfd);
+	int newfd = open(_path.c_str(), O_RDONLY);
 	CheckError(newfd);
 	return new RealFD(newfd, this);
 }

@@ -178,7 +178,6 @@ SYSCALL(sys_link)
 	const char* target = (const char*) arg.a0.p;
 	const char* path = (const char*) arg.a1.p;
 
-	log("link target=<%s> path=<%s>", target, path);
 	VFS::Link(NULL, target, path);
 	return 0;
 }
@@ -210,7 +209,6 @@ SYSCALL(sys_symlink)
 	const char* target = (const char*) arg.a0.p;
 	const char* path = (const char*) arg.a1.p;
 
-	log("symlink target=<%s> path=<%s>", target, path);
 	VFS::Symlink(NULL, target, path);
 	return 0;
 }
