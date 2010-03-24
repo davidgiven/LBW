@@ -176,6 +176,19 @@ void VFS::RmDir(VFSNode* cwd, const string& path)
 	node->RmDir(leaf);
 }
 
+void VFS::Mknod(VFSNode* cwd, const string& path, mode_t mode, dev_t dev)
+{
+#if defined VERBOSE
+	log("%s(%s)", __FUNCTION__, path.c_str());
+#endif
+
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(cwd, path, node, leaf, false);
+
+	node->Mknod(leaf, mode, dev);
+}
+
 string VFS::ReadLink(VFSNode* cwd, const string& path)
 {
 #if defined VERBOSE

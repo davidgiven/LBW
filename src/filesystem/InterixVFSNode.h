@@ -31,6 +31,7 @@ public:
 	deque<string> Enumerate();
 	void MkDir(const string& name, int mode = 0);
 	void RmDir(const string& name);
+	void Mknod(const string& name, mode_t mode, dev_t dev);
 	int Access(const string& name, int mode);
 	void Rename(const string& from, VFSNode* other, const string& to);
 	void Chmod(const string& name, int mode);

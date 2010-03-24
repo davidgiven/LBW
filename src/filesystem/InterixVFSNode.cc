@@ -168,6 +168,15 @@ void InterixVFSNode::RmDir(const string& name)
 		throw errno;
 }
 
+void InterixVFSNode::Mknod(const string& name, mode_t mode, dev_t dev)
+{
+	RAIILock locked;
+	setup(name);
+
+	int i = mknod(name.c_str(), mode, dev);
+	CheckError(i);
+}
+
 int InterixVFSNode::Access(const string& name, int mode)
 {
 	RAIILock locked;

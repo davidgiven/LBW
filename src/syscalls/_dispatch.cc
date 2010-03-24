@@ -88,6 +88,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 11, sys32_execve);
 		CALL_SYSCALL( 12, sys_chdir);
 		CALL_SYSCALL( 13, compat_sys_time);
+		CALL_SYSCALL( 14, sys_mknod);
 		CALL_SYSCALL( 15, sys_chmod);
 		CALL_SYSCALL( 19, sys32_lseek);
 		CALL_SYSCALL( 20, sys_getpid);

@@ -31,6 +31,7 @@ public:
 	static void Lstat(VFSNode* cwd, const string& path, struct stat& st);
 	static void MkDir(VFSNode* cwd, const string& path, int mode = 0);
 	static void RmDir(VFSNode* cwd, const string& path);
+	static void Mknod(VFSNode* cwd, const string& path, mode_t mode, dev_t dev);
 	static string ReadLink(VFSNode* cwd, const string& path);
 	static int Access(VFSNode* cwd, const string& path, int mode);
 	static void Rename(VFSNode* cwd, const string& from, const string& to);

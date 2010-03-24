@@ -43,18 +43,19 @@ public:
 	virtual Ref<FD> OpenDirectory();
 	virtual Ref<FD> OpenFile(const string& name, int flags = O_RDONLY,
 			int mode = 0);
-	virtual string ReadLink(const string& name);
-	virtual deque<string> Enumerate();
-	virtual void MkDir(const string& name, int mode = 0);
-	virtual void RmDir(const string& name);
-	virtual int Access(const string& name, int mode);
-	virtual void Rename(const string& from, VFSNode* tonode, const string& to);
-	virtual void Chmod(const string& name, int mode);
-	virtual void Chown(const string& name, uid_t owner, gid_t group);
-	virtual void Link(const string& from, VFSNode* tonode, const string& to);
-	virtual void Unlink(const string& name);
-	virtual void Symlink(const string& name, const string& target);
-	virtual void Utimes(const string& name, const struct timeval times[2]);
+	virtual string ReadLink(const string& name) { throw EINVAL; }
+	virtual deque<string> Enumerate() { throw EINVAL; }
+	virtual void MkDir(const string& name, int mode = 0) { throw EINVAL; }
+	virtual void RmDir(const string& name) { throw EINVAL; }
+	virtual void Mknod(const string& name, mode_t mode, dev_t dev) { throw EINVAL; }
+	virtual int Access(const string& name, int mode) { throw EINVAL; }
+	virtual void Rename(const string& from, VFSNode* tonode, const string& to) { throw EINVAL; }
+	virtual void Chmod(const string& name, int mode) { throw EINVAL; }
+	virtual void Chown(const string& name, uid_t owner, gid_t group) { throw EINVAL; }
+	virtual void Link(const string& from, VFSNode* tonode, const string& to) { throw EINVAL; }
+	virtual void Unlink(const string& name) { throw EINVAL; }
+	virtual void Symlink(const string& name, const string& target) { throw EINVAL; }
+	virtual void Utimes(const string& name, const struct timeval times[2]) { throw EINVAL; }
 
 	void Resolve(const string& path, Ref<VFSNode>& node, string& leaf,
 			bool followlink);

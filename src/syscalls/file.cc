@@ -179,6 +179,16 @@ SYSCALL(sys_rmdir)
 	return 0;
 }
 
+SYSCALL(sys_mknod)
+{
+	const char* path = (const char*) arg.a0.p;
+	mode_t mode = arg.a1.u;
+	dev_t dev = arg.a2.u;
+
+	VFS::Mknod(NULL, path, mode, dev);
+	return 0;
+}
+
 SYSCALL(sys_rename)
 {
 	const char* from = (const char*) arg.a0.p;
