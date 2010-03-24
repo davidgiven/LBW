@@ -65,6 +65,13 @@ Ref<VFSNode> FakeVFSNode::Traverse(const string& name)
 	return i->second->OpenDirectory(this);
 }
 
+Ref<FD> FakeVFSNode::OpenDirectory()
+{
+	int newfd = FD::CreateDummyFD();
+	CheckError(newfd);
+	return new RealFD(newfd, this);
+}
+
 Ref<FD> FakeVFSNode::OpenFile(const string& name, int flags, int mode)
 {
 	if ((name == ".") || (name == "..") || name.empty())

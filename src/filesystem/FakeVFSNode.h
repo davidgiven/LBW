@@ -24,6 +24,7 @@ public:
 
 	void StatFile(const string& name, struct stat& st);
 	Ref<VFSNode> Traverse(const string& name);
+	Ref<FD> OpenDirectory();
 	Ref<FD> OpenFile(const string& name, int flags = O_RDONLY,
 			int mode = 0);
 	deque<string> Enumerate();
