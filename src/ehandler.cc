@@ -375,6 +375,7 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			}
 		}
 
+		case 0x81: // <group1> Ev, Iz
 		case 0xc7: // <group 12> Ev, Iz
 		{
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
