@@ -185,6 +185,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(299, compat_sys_futimesat);
 		CALL_SYSCALL(300, sys32_fstatat);
 		CALL_SYSCALL(301, sys_unlinkat);
+		CALL_SYSCALL(306, sys_fchmodat);
 		CALL_SYSCALL(308, compat_sys_pselect6);
 		CALL_SYSCALL(311, compat_sys_set_robust_list);
 		CALL_SYSCALL(320, compat_sys_utimensat);

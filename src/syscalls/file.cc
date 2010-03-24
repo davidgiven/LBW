@@ -82,6 +82,21 @@ SYSCALL(sys_chmod)
 	return 0;
 }
 
+SYSCALL(sys_fchmodat)
+{
+	int dirfd = arg.a0.s;
+	const char* path = (const char*) arg.a1.p;
+	u32 mode = arg.a2.u;
+	int flags = arg.a3.s;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	if (flags & LINUX_AT_SYMLINK_NOFOLLOW)
+		VFS::Lchmod(node, path, mode);
+	else
+		VFS::Chmod(node, path, mode);
+	return 0;
+}
+
 SYSCALL(sys_chown)
 {
 	const char* path = (const char*) arg.a0.p;

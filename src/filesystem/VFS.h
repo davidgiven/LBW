@@ -34,6 +34,7 @@ public:
 	static string ReadLink(VFSNode* cwd, const string& path);
 	static int Access(VFSNode* cwd, const string& path, int mode);
 	static void Rename(VFSNode* cwd, const string& from, const string& to);
+	static void Lchmod(VFSNode* cwd, const string& path, int mode);
 	static void Chmod(VFSNode* cwd, const string& path, int mode);
 	static void Chown(VFSNode* cwd, const string& path, uid_t owner, gid_t group);
 	static void Lchown(VFSNode* cwd, const string& path, uid_t owner, gid_t group);

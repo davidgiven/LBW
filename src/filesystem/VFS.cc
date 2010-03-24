@@ -235,6 +235,19 @@ void VFS::Chmod(VFSNode* cwd, const string& path, int mode)
 	node->Chmod(leaf, mode);
 }
 
+void VFS::Lchmod(VFSNode* cwd, const string& path, int mode)
+{
+#if defined VERBOSE
+	log("%s(%s)", __FUNCTION__, path.c_str());
+#endif
+
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(cwd, path, node, leaf, false);
+
+	node->Chmod(leaf, mode);
+}
+
 void VFS::Chown(VFSNode* cwd, const string& path, uid_t owner, gid_t group)
 {
 #if defined VERBOSE
