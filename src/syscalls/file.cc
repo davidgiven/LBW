@@ -101,6 +101,22 @@ SYSCALL(sys_lchown)
 	return 0;
 }
 
+SYSCALL(sys_fchownat)
+{
+	int dirfd = arg.a0.s;
+	const char* path = (const char*) arg.a1.p;
+	uid_t owner = arg.a2.u;
+	gid_t group = arg.a3.u;
+	int flags = arg.a4.s;
+
+	Ref<VFSNode> node = FD::GetVFSNodeFor(dirfd);
+	if (flags & LINUX_AT_SYMLINK_NOFOLLOW)
+		VFS::Lchown(node, path, owner, group);
+	else
+		VFS::Chown(node, path, owner, group);
+	return 0;
+}
+
 SYSCALL(sys_get_cwd)
 {
 	char* buffer = (char*) arg.a0.p;
