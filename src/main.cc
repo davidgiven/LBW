@@ -116,7 +116,26 @@ public:
 	int Option(const string& option, const string& argument)
 	{
 		if (option == "--help")
-			Error("lbw: no help yet. Sorry.");
+		{
+			static const char message[] =
+				"lbw: [options...] <executable> [arguments...]\n"
+				"LBW " VERSION " (C) 2010 David Given\n"
+				"\n"
+				"Options:\n"
+				"  --fakeroot       Enable a crude fakeroot mode\n"
+				"  --warnings       Show warnings for emulation problems\n"
+				"  --chroot <path>  Set up a fake chroot for path\n"
+				"\n"
+				"In order to run dynamic binaries, you must set up a chroot.\n"
+				"\n"
+				"This program is a technical proof of concept, and is not suitable for\n"
+				"any purpose whatsoever. If you try to use it for real work you will\n"
+				"regret it. Horribly. YOU HAVE BEEN WARNED.\n"
+				;
+
+			write(1, message, sizeof(message));
+			exit(0);
+		}
 		else if (option == "--fakeroot")
 		{
 			FakeRoot = true;

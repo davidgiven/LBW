@@ -8,6 +8,7 @@
 include "tools/c.pm"
 
 HOME = os.getenv("HOME")
+VERSION = "0.1"
 
 CBUILDFLAGS = {
 	'-Wall',
@@ -25,7 +26,8 @@ CLIBRARIES = {
 
 CDEFINES = {
 	'_ALL_SOURCE',
-	'_REENTRANT'
+	'_REENTRANT',
+	'VERSION="%VERSION%"'
 }
 	
 CINCLUDES = {
