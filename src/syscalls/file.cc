@@ -15,13 +15,14 @@
 #include <utime.h>
 #include <map>
 
-static void copystring1(const string& s, char* buffer, size_t len)
+static int copystring1(const string& s, char* buffer, size_t len)
 {
 	size_t slen = s.size() + 1;
 	if (len < slen)
 		throw ERANGE;
 
 	memcpy(buffer, s.c_str(), slen);
+	return slen;
 }
 
 static int copystring2(const string& s, char* buffer, size_t len)
@@ -126,8 +127,7 @@ SYSCALL(sys_get_cwd)
 		throw EINVAL;
 
 	string cwd = VFS::GetCWD();
-	copystring1(cwd, buffer, len);
-	return 0;
+	return copystring1(cwd, buffer, len);
 }
 
 SYSCALL(sys_chdir)
@@ -175,10 +175,11 @@ SYSCALL(sys_rename)
 
 SYSCALL(sys_link)
 {
-	const char* from = (const char*) arg.a0.p;
-	const char* to = (const char*) arg.a1.p;
+	const char* target = (const char*) arg.a0.p;
+	const char* path = (const char*) arg.a1.p;
 
-	VFS::Link(NULL, from, to);
+	log("link target=<%s> path=<%s>", target, path);
+	VFS::Link(NULL, target, path);
 	return 0;
 }
 
@@ -206,10 +207,11 @@ SYSCALL(sys_unlinkat)
 
 SYSCALL(sys_symlink)
 {
-	const char* to = (const char*) arg.a0.p;
-	const char* from = (const char*) arg.a1.p;
+	const char* target = (const char*) arg.a0.p;
+	const char* path = (const char*) arg.a1.p;
 
-	VFS::Symlink(NULL, to, from);
+	log("symlink target=<%s> path=<%s>", target, path);
+	VFS::Symlink(NULL, target, path);
 	return 0;
 }
 

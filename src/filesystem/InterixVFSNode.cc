@@ -238,23 +238,22 @@ void InterixVFSNode::Chown(const string& name, uid_t owner, gid_t group)
 		throw errno;
 }
 
-void InterixVFSNode::Link(const string& from, VFSNode* other, const string& to)
+void InterixVFSNode::Link(const string& name, VFSNode* targetnode, const string& target)
 {
-	InterixVFSNode* othernode = dynamic_cast<InterixVFSNode*>(other);
-	assert(othernode);
+	InterixVFSNode* itargetnode = dynamic_cast<InterixVFSNode*>(targetnode);
+	assert(targetnode);
 
-	if ((from == ".") || (from == "..") || from.empty() ||
-		(to == ".") || (to == "..") || to.empty())
+	if ((target == ".") || (target == "..") || target.empty() ||
+		(name == ".") || (name == "..") || name.empty())
 		throw EINVAL;
 
 	RAIILock locked;
 
-	string toabs = othernode->GetRealPath() + "/" + to;
+	string toabs = itargetnode->GetRealPath() + "/" + target;
 
 	setup();
-	int i = link(from.c_str(), toabs.c_str());
-	if (i == -1)
-		throw errno;
+	int i = link(toabs.c_str(), name.c_str());
+	CheckError(i);
 }
 
 void InterixVFSNode::Unlink(const string& name)
@@ -273,8 +272,7 @@ void InterixVFSNode::Symlink(const string& name, const string& target)
 	setup(name);
 
 	int i = symlink(target.c_str(), name.c_str());
-	if (i == -1)
-		throw errno;
+	CheckError(i);
 }
 
 

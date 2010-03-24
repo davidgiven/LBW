@@ -167,6 +167,12 @@ void VFS::RmDir(VFSNode* cwd, const string& path)
 	string leaf;
 	Resolve(cwd, path, node, leaf, false);
 
+	if ((leaf == ".") || (leaf.empty()))
+	{
+		leaf = node->GetName();
+		node = node->Traverse("..");
+	}
+
 	node->RmDir(leaf);
 }
 
@@ -255,24 +261,24 @@ void VFS::Lchown(VFSNode* cwd, const string& path, uid_t owner, gid_t group)
 	node->Chown(leaf, owner, group);
 }
 
-void VFS::Link(VFSNode* cwd, const string& from, const string& to)
+void VFS::Link(VFSNode* cwd, const string& target, const string& path)
 {
 #if defined VERBOSE
 	log("%s(%s, %s)", __FUNCTION__, from.c_str(), to.c_str());
 #endif
 
-	Ref<VFSNode> fromnode;
-	string fromleaf;
-	Resolve(cwd, from, fromnode, fromleaf, false);
+	Ref<VFSNode> targetnode;
+	string targetleaf;
+	Resolve(cwd, target, targetnode, targetleaf, false);
 
-	Ref<VFSNode> tonode;
-	string toleaf;
-	Resolve(cwd, to, tonode, toleaf, false);
+	Ref<VFSNode> pathnode;
+	string pathleaf;
+	Resolve(cwd, path, pathnode, pathleaf, false);
 
-	if (typeid((VFSNode*)fromnode) != typeid((VFSNode*)tonode))
+	if (typeid((VFSNode*)pathnode) != typeid((VFSNode*)pathnode))
 		throw EXDEV;
 
-	fromnode->Link(fromleaf, tonode, toleaf);
+	pathnode->Link(pathleaf, targetnode, targetleaf);
 }
 
 void VFS::Unlink(VFSNode* cwd, const string& path)
@@ -288,7 +294,7 @@ void VFS::Unlink(VFSNode* cwd, const string& path)
 	node->Unlink(leaf);
 }
 
-void VFS::Symlink(VFSNode* cwd, const string& to, const string& from)
+void VFS::Symlink(VFSNode* cwd, const string& target, const string& path)
 {
 #if defined VERBOSE
 	log("%s(%s, %s)", __FUNCTION__, from.c_str(), to.c_str());
@@ -296,9 +302,9 @@ void VFS::Symlink(VFSNode* cwd, const string& to, const string& from)
 
 	Ref<VFSNode> node;
 	string leaf;
-	Resolve(cwd, from, node, leaf, false);
+	Resolve(cwd, path, node, leaf, false);
 
-	node->Symlink(leaf, to);
+	node->Symlink(leaf, target);
 }
 
 void VFS::Utimes(VFSNode* cwd, const string& path, const struct timeval times[2])
