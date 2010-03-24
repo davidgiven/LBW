@@ -22,7 +22,7 @@
 #define LINUX_MS_INVALIDATE   2
 #define LINUX_MS_SYNC         4
 
-extern u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& fd, u32 offset);
+extern u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, int fd, u32 offset);
 extern void do_munmap(u8* addr, u32 len);
 extern void UnmapAll();
 

@@ -4,7 +4,7 @@
  */
 
 #include "globals.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/PtsVFSNode.h"
 #include "filesystem/FakeFile.h"
@@ -68,9 +68,11 @@ Ref<FD> PtsVFSNode::OpenFile(const string& name, int flags, int mode)
 	string f = findpty(name);
 	if (!f.empty())
 	{
-		Ref<RawFD> ref = new RawFD();
-		ref->Open(f.c_str(), flags, mode);
-		return (FD*) ref;
+		int newfd = open(f.c_str(), flags, mode);
+		if (newfd == -1)
+			throw errno;
+
+		return new RealFD(newfd);
 	}
 	return FakeVFSNode::OpenFile(name, flags, mode);
 }

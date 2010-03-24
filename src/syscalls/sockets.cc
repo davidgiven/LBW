@@ -5,8 +5,8 @@
 
 #include "globals.h"
 #include "syscalls.h"
-#include "filesystem/IPSocketFD.h"
-#include "filesystem/UnixSocketFD.h"
+#include "filesystem/FD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/socket.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -124,19 +124,21 @@ static int do_socket(int protofamily, int type, int protocol)
 {
 	int itype = type & 0xff;
 
-	Ref<SocketFD> ref;
-	if (protofamily == AF_INET)
-		ref = new IPSocketFD();
-	else if (protofamily == AF_UNIX)
-		ref = new UnixSocketFD();
-	else
-		throw EPROTONOSUPPORT;
+	int newfd;
+	switch (protofamily)
+	{
+		case AF_INET:
+		case AF_UNIX:
+			newfd = socket(protofamily, type, protocol);
+			break;
 
-	ref->Open(protofamily, itype, protocol);
-	int newfd = FD::New(ref);
+		default:
+			throw EPROTONOSUPPORT;
+	}
 
+	Ref<FD> ref = new RealFD(newfd);
 	if (type & LINUX_SOCK_CLOEXEC)
-		FD::SetCloexec(newfd, true);
+		ref->Fcntl(LINUX_F_SETFD, 1);
 	if (type & LINUX_SOCK_NONBLOCK)
 		ref->Fcntl(LINUX_F_SETFL, LINUX_O_NONBLOCK);
 
@@ -146,16 +148,14 @@ static int do_socket(int protofamily, int type, int protocol)
 static int do_bind(int fd, const struct sockaddr* addr, int addrlen)
 {
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	fdo->Bind(addr, addrlen);
+	ref->Bind(addr, addrlen);
 	return 0;
 }
 
 static int do_connect(int fd, const struct sockaddr* addr, int addrlen)
 {
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	fdo->Connect(addr, addrlen);
+	ref->Connect(addr, addrlen);
 	return 0;
 }
 
@@ -167,8 +167,7 @@ static int do_setsockopt(int fd, int level, int optname, const void* optval,
 	convert_sockopt(level, optname, ilevel, ioptname);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	fdo->SetSockopt(ilevel, ioptname, optval, optlen);
+	ref->SetSockopt(ilevel, ioptname, optval, optlen);
 	return 0;
 }
 
@@ -179,16 +178,14 @@ static int do_getsockopt(int fd, int level, int optname, void* optval,
 	convert_sockopt(level, optname, ilevel, ioptname);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	fdo->GetSockopt(ilevel, ioptname, optval, optlen);
+	ref->GetSockopt(ilevel, ioptname, optval, optlen);
 	return 0;
 }
 
 static int do_getsockname(int fd, struct sockaddr* sa, int* namelen)
 {
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	fdo->GetSockname(sa, namelen);
+	ref->GetSockname(sa, namelen);
 	return 0;
 }
 
@@ -197,8 +194,7 @@ static int do_send(int fd, const void *msg, size_t len, int flags)
 	int iflags = convert_msg_flags(flags);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->SendTo(msg, len, iflags, NULL, NULL);
+	return ref->SendTo(msg, len, iflags, NULL, NULL);
 }
 
 static int do_recv(int fd, void *msg, size_t len, int flags)
@@ -206,8 +202,7 @@ static int do_recv(int fd, void *msg, size_t len, int flags)
 	int iflags = convert_msg_flags(flags);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->RecvFrom(msg, len, iflags, NULL, NULL);
+	return ref->RecvFrom(msg, len, iflags, NULL, NULL);
 }
 
 static int do_sendto(int fd, const void* buf, size_t len, int flags,
@@ -216,8 +211,7 @@ static int do_sendto(int fd, const void* buf, size_t len, int flags,
 	int iflags = convert_msg_flags(flags);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->SendTo(buf, len, iflags, to, tolen);
+	return ref->SendTo(buf, len, iflags, to, tolen);
 }
 
 static int do_recvfrom(int fd, void *buf, size_t len, int flags,
@@ -226,8 +220,7 @@ static int do_recvfrom(int fd, void *buf, size_t len, int flags,
 	int iflags = convert_msg_flags(flags);
 
 	Ref<FD> ref = FD::Get(fd);
-	SocketFD* fdo = SocketFD::Cast(ref);
-	return fdo->RecvFrom(buf, len, iflags, from, fromlen);
+	return ref->RecvFrom(buf, len, iflags, from, fromlen);
 }
 
 static ssize_t do_sendmsg(int fd, const struct linux_msghdr *msg, int flags)

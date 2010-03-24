@@ -45,7 +45,6 @@ void FlushExecutable()
 {
 	UnmapAll();
 	ClearBrk();
-	FD::Flush();
 }
 
 void Lock()

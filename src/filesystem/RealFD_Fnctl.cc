@@ -4,7 +4,7 @@
  */
 
 #include "globals.h"
-#include "RawFD.h"
+#include "RealFD.h"
 #include "termios.h"
 
 #define LINUX_F_RDLCK         0
@@ -67,13 +67,15 @@ static void convert(struct linux_flock64& lfl, struct flock& ifl)
 	ifl.l_pid = lfl.l_pid;
 }
 
-int RawFD::Fcntl(int cmd, u_int32_t argument)
+int RealFD::Fcntl(int cmd, u_int32_t argument)
 {
+	int fd = GetFD();
+
 	switch (cmd)
 	{
 		case LINUX_F_GETFL:
 		{
-			int result = fcntl(_realfd, F_GETFL, NULL);
+			int result = fcntl(fd, F_GETFL, NULL);
 			if (result == -1)
 				throw errno;
 			return FileFlagsI2L(result);
@@ -82,8 +84,8 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 		case LINUX_F_SETFL:
 		{
 			int iflags = FileFlagsL2I(argument);
-			//log("setting flags for realfd %d to %x", _realfd, iflags);
-			int result = fcntl(_realfd, F_SETFL, iflags);
+			//log("setting flags for realfd %d to %x", fd, iflags);
+			int result = fcntl(fd, F_SETFL, iflags);
 			return SysError(result);
 		}
 
@@ -93,7 +95,7 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 			struct flock ifl;
 			convert(lfl, ifl);
 
-			int result = fcntl(_realfd, F_SETLK, &ifl);
+			int result = fcntl(fd, F_SETLK, &ifl);
 			return SysError(result);
 		}
 
@@ -103,7 +105,7 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 			struct flock ifl;
 			convert(lfl, ifl);
 
-			int result = fcntl(_realfd, F_SETLKW, &ifl);
+			int result = fcntl(fd, F_SETLKW, &ifl);
 			return SysError(result);
 		}
 
@@ -113,7 +115,7 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 			struct flock ifl;
 			convert(lfl, ifl);
 
-			int result = fcntl(_realfd, F_SETLK, &ifl);
+			int result = fcntl(fd, F_SETLK, &ifl);
 			return SysError(result);
 		}
 
@@ -123,7 +125,7 @@ int RawFD::Fcntl(int cmd, u_int32_t argument)
 			struct flock ifl;
 			convert(lfl, ifl);
 
-			int result = fcntl(_realfd, F_SETLKW, &ifl);
+			int result = fcntl(fd, F_SETLKW, &ifl);
 			return SysError(result);
 		}
 	}

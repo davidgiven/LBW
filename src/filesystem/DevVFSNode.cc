@@ -4,11 +4,13 @@
  */
 
 #include "globals.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/DevVFSNode.h"
 #include "filesystem/PtsVFSNode.h"
 #include "filesystem/FakeFile.h"
+#include <sys/types.h>
+#include <dirent.h>
 
 struct DevFile
 {

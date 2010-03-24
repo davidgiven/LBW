@@ -58,7 +58,7 @@ void ElfLoader::Open(const string& filename)
 	int i;
 
 	_fd = VFS::OpenFile(NULL, filename);
-	int fd = _fd->GetRealFD();
+	int fd = _fd->GetFD();
 	fcntl(fd, F_SETFD, FD_CLOEXEC);
 
 	/* Load the header. */
@@ -151,6 +151,8 @@ const struct elf_phdr& ElfLoader::GetProgramHeader(int n) const
 
 void ElfLoader::Load()
 {
+	int fd = _fd->GetFD();
+
 	/* We can only load ET_DYN and ET_EXEC executables. */
 
 	if ((_elfhdr.e_type != ET_DYN) && (_elfhdr.e_type != ET_EXEC))
@@ -189,7 +191,7 @@ void ElfLoader::Load()
 		loadoffset = do_mmap(NULL, maxaddr,
 				LINUX_PROT_READ | LINUX_PROT_WRITE | LINUX_PROT_EXEC,
 				LINUX_MAP_PRIVATE | LINUX_MAP_ANONYMOUS,
-				_fd, 0);
+				fd, 0);
 		do_munmap((u8*) loadoffset, maxaddr);
 #if defined VERBOSE
 		log("actual load offset is %08x", loadoffset);
@@ -228,7 +230,7 @@ void ElfLoader::Load()
 #endif
 				do_mmap((u8*) addr, mlen, prot,
 						LINUX_MAP_PRIVATE | LINUX_MAP_FIXED | LINUX_MAP_ANONYMOUS,
-						_fd, off);
+						fd, off);
 			}
 
 			/* Load the actual data. */
@@ -238,7 +240,7 @@ void ElfLoader::Load()
 #endif
 			do_mmap((u8*) addr, flen, prot,
 					LINUX_MAP_PRIVATE | LINUX_MAP_FIXED,
-					_fd, off);
+					fd, off);
 
 			/* Wipe any remaining data, if necessary --- we may have loaded a
 			 * page too many.

@@ -3,18 +3,16 @@
  * file in this distribution for the full text.
  */
 
-#ifndef FILEFD_H
-#define FILEFD_H
+#ifndef FAKEDIRFD_H
+#define FAKEDIRFD_H
 
 #include "FD.h"
 
-class FileFD : public FD
+class FakeDirFD : public FD
 {
 public:
-
-protected:
-
-private:
+	FakeDirFD(int fd, VFSNode* node);
+	~FakeDirFD();
 };
 
 #endif

@@ -5,8 +5,7 @@
 
 #include "globals.h"
 #include "syscalls.h"
-#include "filesystem/RawFD.h"
-#include "filesystem/DirFD.h"
+#include "filesystem/FD.h"
 #include "filesystem/VFS.h"
 #include <sys/uio.h>
 #include <poll.h>

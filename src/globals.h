@@ -84,6 +84,7 @@ extern void DumpMemory(const void* address, u_int32_t len);
 extern void DumpMap(pid_t pid);
 
 extern string StringF(const char* format, ...);
+extern int CheckError(int i);
 
 /* User space */
 

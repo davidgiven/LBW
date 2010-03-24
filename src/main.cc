@@ -6,7 +6,6 @@
 #include "globals.h"
 #include "Thread.h"
 #include "filesystem/VFS.h"
-#include "filesystem/RawFD.h"
 #include <stdarg.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -147,44 +146,9 @@ public:
 	bool Warnings : 1;
 };
 
-static void add_std_fd(int fd)
-{
-	/* This is a very crude way of determining whether the file descriptor is
-	 * open. */
-
-#if 0
-	{
-		fd_set set;
-		FD_ZERO(&set);
-		FD_SET(fd, &set);
-
-		struct timeval tv = {0, 0};
-
-		if (select(fd+1, &set, NULL, NULL, &tv) == -1)
-			return;
-	}
-#else
-	if (fcntl(fd, F_GETFL, 0) == -1)
-		return;
-#endif
-
-	//log("registering fd %d", fd);
-	Ref<RawFD> fdo = new RawFD();
-	fdo->Reference(); // never allow these objects to be destroyed
-	fdo->Open(fd);
-	FD::New(fdo, fd);
-}
-
 int main(int argc, const char* argv[], const char* environ[])
 {
 	string linuxfile;
-
-	/* Register file descriptors. We have to do this first to avoid
-	 * problems caused by our own file descriptors.
-	 */
-
-	for (int i = 0; i < 100; i++)
-		add_std_fd(i);
 
 	if (getenv("LBW_CHILD"))
 	{

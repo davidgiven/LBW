@@ -4,7 +4,7 @@
  */
 
 #include "globals.h"
-#include "RawFD.h"
+#include "RealFD.h"
 #include "termios.h"
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -84,28 +84,30 @@
 #define LINUX_TIOCSPTLCK    0x40045431
 #define LINUX_TIOCGPTN      0x80045430
 
-int RawFD::Ioctl(int cmd, u_int32_t argument)
+int RealFD::Ioctl(int cmd, u_int32_t argument)
 {
+	int fd = GetFD();
+
 	int result;
 	switch (cmd)
 	{
 		case LINUX_TCGETS:
-			return linux_tcgetattr(_realfd, (void*) argument);
+			return linux_tcgetattr(fd, (void*) argument);
 
 		case LINUX_TCSETS:
-			return linux_tcsetattr(_realfd, LINUX_TCSANOW, (void*) argument);
+			return linux_tcsetattr(fd, LINUX_TCSANOW, (void*) argument);
 
 		case LINUX_TCSETSW:
-			return linux_tcsetattr(_realfd, LINUX_TCSADRAIN, (void*) argument);
+			return linux_tcsetattr(fd, LINUX_TCSADRAIN, (void*) argument);
 
 		case LINUX_TCSETSF:
-			return linux_tcsetattr(_realfd, LINUX_TCSAFLUSH, (void*) argument);
+			return linux_tcsetattr(fd, LINUX_TCSAFLUSH, (void*) argument);
 
 		case LINUX_TIOCGWINSZ:
 		{
 			/* Linux & Interix struct winsize are compatible */
 			struct winsize* ws = (struct winsize*) argument;
-			result = ioctl(_realfd, TIOCGWINSZ, ws);
+			result = ioctl(fd, TIOCGWINSZ, ws);
 			goto common;
 		}
 
@@ -113,20 +115,20 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 		{
 			/* Linux & Interix struct winsize are compatible */
 			struct winsize* ws = (struct winsize*) argument;
-			result = ioctl(_realfd, TIOCSWINSZ, ws);
+			result = ioctl(fd, TIOCSWINSZ, ws);
 			goto common;
 		}
 
 		case LINUX_TIOCSCTTY:
 		{
-			result = ioctl(_realfd, TIOCSCTTY, 0);
+			result = ioctl(fd, TIOCSCTTY, 0);
 			goto common;
 		}
 
 		case LINUX_TIOCGPGRP:
 		{
 			int& pgrp = *(int*) argument;
-			result = tcgetpgrp(_realfd);
+			result = tcgetpgrp(fd);
 			if (result == -1)
 				goto error;
 			pgrp = result;
@@ -136,13 +138,13 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 		case LINUX_TIOCSPGRP:
 		{
 			int& pgrp = *(int*) argument;
-			result = tcsetpgrp(_realfd, pgrp);
+			result = tcsetpgrp(fd, pgrp);
 			goto common;
 		}
 
 		case LINUX_FIONREAD:
 		{
-			result = ioctl(_realfd, FIONREAD, argument);
+			result = ioctl(fd, FIONREAD, argument);
 			goto common;
 		}
 
@@ -155,7 +157,7 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 		{
 			char buffer[32];
 			memset(buffer, 0, sizeof(buffer));
-			if (ptsname_r(_realfd, buffer, sizeof(buffer)) != 0)
+			if (ptsname_r(fd, buffer, sizeof(buffer)) != 0)
 				throw EINVAL;
 
 			/* Interix doesn't use pty numbers, instead returning a handle to
@@ -174,7 +176,7 @@ int RawFD::Ioctl(int cmd, u_int32_t argument)
 		{
 			int& i = *(int*) argument;
 
-			Warning("Unsupported call to TIOCSPTLCK(%d, %d)", _realfd, i);
+			Warning("Unsupported call to TIOCSPTLCK(%d, %d)", fd, i);
 			return 0;
 		}
 

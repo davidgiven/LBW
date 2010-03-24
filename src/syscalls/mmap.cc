@@ -5,7 +5,7 @@
 
 #include "globals.h"
 #include "syscalls.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "syscalls/mmap.h"
 #include "MemOp.h"
 #include <sys/mman.h>
@@ -308,13 +308,13 @@ struct linux_mmap_arg_struct
 	u32 offset;
 };
 
-u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
+u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, int fd, u32 offset)
 {
 	RAIILock locked;
 
 #if defined VERBOSE
-	log("mmap(%p, %p, %p, %p, fdo %p, %p)",
-			addr, len, prot, flags, (FD*) ref, offset);
+	log("mmap(%p, %p, %p, %p, %d, %p)",
+			addr, len, prot, flags, fd, offset);
 #endif
 
 	if (!MemOp::Aligned<PAGE_SIZE>(addr))
@@ -372,8 +372,6 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 #if defined VERBOSE
 		log("not anonymous");
 #endif
-		int realfd = ref->GetRealFD();
-
 		/* If the offset and the address are 64kB-aligned, we can do a proper
 		 * mmap(), which we prefer. Otherwise we have to create fragmented
 		 * blocks and load the data into RAM (ick, phht).
@@ -388,7 +386,7 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 			/* Only map what data the file has (or odd stuff happens). */
 
 			struct stat st;
-			fstat(realfd, &st);
+			fstat(fd, &st);
 			int reallen = min(len, (u32) st.st_size - offset);
 #if defined VERBOSE
 			log("file length is %p, actually mapping %p", st.st_size, reallen);
@@ -402,7 +400,7 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 #endif
 
 			if (alignedlen > 0)
-				blockstore.Map(addr, alignedlen, realfd, offset, shared, w, x);
+				blockstore.Map(addr, alignedlen, fd, offset, shared, w, x);
 
 			/* The rest gets loaded into a fragmented block. */
 
@@ -418,21 +416,13 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, Ref<FD>& ref, u32 offset)
 		{
 			blockstore.UsePage(loadaddr + i);
 
-			int r = pread(realfd, loadaddr+i, PAGE_SIZE, offset+i);
+			int r = pread(fd, loadaddr+i, PAGE_SIZE, offset+i);
 			if (r == -1)
 				throw errno;
 		}
 	}
 
 	return (u32) addr;
-}
-
-u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, u32 fd, u32 offset)
-{
-	Ref<FD> ref;
-	if (!(flags & LINUX_MAP_ANONYMOUS))
-		ref = FD::Get(fd);
-	return do_mmap(addr, len, prot, flags, ref, offset);
 }
 
 void do_munmap(u8* addr, u32 len)

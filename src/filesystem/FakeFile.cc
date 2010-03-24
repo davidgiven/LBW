@@ -4,7 +4,7 @@
  */
 
 #include "globals.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/FakeVFSNode.h"
 #include "filesystem/FakeFile.h"
@@ -105,9 +105,11 @@ TunnelledFakeFile::TunnelledFakeFile(
 
 Ref<FD> TunnelledFakeFile::OpenFile(int flags, int mode)
 {
-	Ref<RawFD> ref = new RawFD();
-	ref->Open(_destname.c_str(), flags, mode);
-	return (FD*) ref;
+	int newfd = open(_destname.c_str(), flags, mode);
+	if (newfd == -1)
+		throw errno;
+
+	return new RealFD(newfd);
 }
 
 TunnelledFakeDirectory::TunnelledFakeDirectory(

@@ -4,8 +4,9 @@
  */
 
 #include "globals.h"
-#include "VFS.h"
-#include "VFSNode.h"
+#include "filesystem/VFS.h"
+#include "filesystem/VFSNode.h"
+#include "filesystem/FakeDirFD.h"
 
 VFSNode::VFSNode(VFSNode* parent, const string& name):
 	_parent(parent),
@@ -151,6 +152,20 @@ void VFSNode::StatFS(struct statvfs& st)
 Ref<VFSNode> VFSNode::Traverse(const string& name)
 {
 	throw ENOENT;
+}
+
+Ref<FD> VFSNode::OpenDirectory()
+{
+	int fd = FD::CreateDummyFD();
+	try
+	{
+		return new FakeDirFD(fd, this);
+	}
+	catch (int e)
+	{
+		close(fd);
+		throw e;
+	}
 }
 
 Ref<FD> VFSNode::OpenFile(const string& name, int flags, int mode)

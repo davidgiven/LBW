@@ -105,4 +105,31 @@ extern void Convert(struct stat& is, struct linux_stat64& ls);
 #define LINUX_UTIME_NOW      ((1l << 30) - 1l)
 #define LINUX_UTIME_OMIT     ((1l << 30) - 2l)
 
+#pragma pack(push, 1)
+struct compat_linux_dirent {
+	u32 d_ino;
+	u32 d_off;
+	u16 d_reclen;
+	char d_name[1];
+};
+
+struct linux_dirent64 {
+	u64	d_ino;
+	s64	d_off;
+	unsigned short d_reclen;
+	unsigned char d_type;
+	char d_name[0];
+};
+#pragma pack(pop)
+
+#define LINUX_DT_UNKNOWN	0
+#define LINUX_DT_FIFO		1
+#define LINUX_DT_CHR		2
+#define LINUX_DT_DIR		4
+#define LINUX_DT_BLK		6
+#define LINUX_DT_REG		8
+#define LINUX_DT_LNK		10
+#define LINUX_DT_SOCK		12
+#define LINUX_DT_WHT		14
+
 #endif

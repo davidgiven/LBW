@@ -4,7 +4,7 @@
  */
 
 #include "globals.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include "filesystem/FakeVFSNode.h"
 #include "filesystem/FakeFile.h"

@@ -10,7 +10,6 @@
 using std::deque;
 
 #include "FD.h"
-#include "DirFD.h"
 
 class VFSNode : public HasRefCount
 {
@@ -41,6 +40,7 @@ public:
 	virtual void StatFS(struct statvfs& st);
 
 	virtual Ref<VFSNode> Traverse(const string& name);
+	virtual Ref<FD> OpenDirectory();
 	virtual Ref<FD> OpenFile(const string& name, int flags = O_RDONLY,
 			int mode = 0);
 	virtual string ReadLink(const string& name);

@@ -6,6 +6,9 @@
 #ifndef LINUX_SOCKET_H
 #define LINUX_SOCKET_H
 
+#define LINUX_SOCK_CLOEXEC   02000000
+#define LINUX_SOCK_NONBLOCK  00004000
+
 #define LINUX_SOL_SOCKET      1
 #define LINUX_SOL_IP          0
 #define LINUX_SOL_TCP         6

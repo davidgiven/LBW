@@ -6,8 +6,7 @@
 #include "globals.h"
 #include "syscalls.h"
 #include "filesystem/FD.h"
-#include "filesystem/RawFD.h"
-#include "filesystem/DirFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/VFS.h"
 #include <sys/uio.h>
 #include <sys/types.h>
@@ -61,8 +60,8 @@ static int do_open(VFSNode* node, const char* filename, int flags, int mode)
 		}
 	}
 
-	int fd = FD::New(ref);
-	FD::SetCloexec(fd, !!(flags & LINUX_O_CLOEXEC));
+	int fd = ref->GetFD();
+	fcntl(fd, F_SETFD, !!(flags & LINUX_O_CLOEXEC));
 	return fd;
 }
 
@@ -89,7 +88,8 @@ SYSCALL(compat_sys_openat)
 SYSCALL(sys_close)
 {
 	int fd = arg.a0.s;
-	FD::Delete(fd);
+	Ref<FD> ref = FD::Get(fd);
+	ref->Close();
 	return 0;
 }
 
@@ -97,35 +97,28 @@ SYSCALL(sys_pipe)
 {
 	int* fds = (int*) arg.a0.p;
 
-	Ref<RawFD> ref1 = new RawFD();
-	Ref<RawFD> ref2 = new RawFD();
-
-	int ifd[2];
-	int i = pipe(ifd);
+	int i = pipe(fds);
 	if (i == -1)
 		throw errno;
 
-	ref1->Open(ifd[0]);
-	ref2->Open(ifd[1]);
-	fds[0] = FD::New(ref1);
-	fds[1] = FD::New(ref2);
-
+	new RealFD(fds[0]);
+	new RealFD(fds[1]);
 	return 0;
 }
 
 SYSCALL(sys_dup)
 {
 	int fd = arg.a0.s;
-
-	return FD::Dup(fd);
+	Ref<FD> ref = FD::Get(fd);
+	return ref->Dup();
 }
 
 SYSCALL(sys_dup2)
 {
 	int oldfd = arg.a0.s;
 	int newfd = arg.a1.s;
-
-	return FD::Dup(oldfd, newfd);
+	Ref<FD> ref = FD::Get(oldfd);
+	return ref->Dup(newfd);
 }
 
 SYSCALL(sys_read)
@@ -178,19 +171,6 @@ SYSCALL(compat_sys_fcntl64)
 	int fd = arg.a0.s;
 	int cmd = arg.a1.s;
 	u_int32_t argument = arg.a2.u;
-
-	switch (cmd)
-	{
-		case LINUX_F_DUPFD:
-			return FD::Dup(fd);
-
-		case LINUX_F_GETFD:
-			return FD::GetCloexec(fd) ? LINUX_FD_CLOEXEC : 0;
-
-		case LINUX_F_SETFD:
-			FD::SetCloexec(fd, argument & LINUX_FD_CLOEXEC);
-			return 0;
-	}
 
 	Ref<FD> fdo = FD::Get(fd);
 	return fdo->Fcntl(cmd, argument);
@@ -304,12 +284,7 @@ SYSCALL(compat_sys_getdents64)
 	unsigned int count = arg.a2.u;
 
 	Ref<FD> fdo = FD::Get(fd);
-
-	DirFD* dirfdo = dynamic_cast<DirFD*>((FD*) fdo);
-	if (!dirfdo)
-		return -LINUX_ENOTDIR;
-
-	return dirfdo->GetDents64(dirent, count);
+	return fdo->GetDents64(dirent, count);
 }
 
 SYSCALL(compat_sys_getdents)
@@ -319,10 +294,5 @@ SYSCALL(compat_sys_getdents)
 	unsigned int count = arg.a2.u;
 
 	Ref<FD> fdo = FD::Get(fd);
-
-	DirFD* dirfdo = dynamic_cast<DirFD*>((FD*) fdo);
-	if (!dirfdo)
-		return -LINUX_ENOTDIR;
-
-	return dirfdo->GetDents(dirent, count);
+	return fdo->GetDents(dirent, count);
 }

@@ -4,10 +4,12 @@
  */
 
 #include "globals.h"
-#include "filesystem/RawFD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/InterixVFSNode.h"
 #include <sys/time.h>
 #include <sys/statvfs.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <utime.h>
 #include <typeinfo>
 
@@ -100,6 +102,13 @@ void InterixVFSNode::setup(const string& name, int e)
 	setup();
 }
 
+Ref<FD> InterixVFSNode::OpenDirectory()
+{
+	int newfd = dup(_realfd);
+	CheckError(newfd);
+	return new RealFD(newfd, this);
+}
+
 Ref<FD> InterixVFSNode::OpenFile(const string& name, int flags,	int mode)
 {
 	RAIILock locked;
@@ -112,9 +121,11 @@ Ref<FD> InterixVFSNode::OpenFile(const string& name, int flags,	int mode)
 		throw EISDIR;
 
 	//log("opening interix file <%s>", name.c_str());
-	Ref<RawFD> ref = new RawFD();
-	ref->Open(name, flags, mode);
-	return (FD*) ref;
+	int newfd = open(name.c_str(), flags, mode);
+	if (newfd == -1)
+		throw errno;
+
+	return new RealFD(newfd);
 }
 
 deque<string> InterixVFSNode::Enumerate()

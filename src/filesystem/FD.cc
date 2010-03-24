@@ -4,245 +4,308 @@
  */
 
 #include "globals.h"
-#include "FD.h"
+#include "filesystem/FD.h"
+#include "filesystem/RealFD.h"
 #include "filesystem/VFS.h"
 #include "filesystem/VFSNode.h"
+#include "filesystem/file.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <map>
 #include <list>
 
-// #define LOG_REFCOUNTING
+//#define VERBOSE
 
 using std::map;
 using std::list;
 
 typedef map<int, Ref<FD> > FDS;
 static FDS fds;
-static map<int, bool> cloexecs;
+
+#if defined VERBOSE
+#define LOG log
+#else
+#define LOG(...)
+#endif
 
 /* --- FD management ----------------------------------------------------- */
 
-static int find_free()
+int FD::CreateDummyFD()
 {
-	int fd = 0;
-	for (;;)
-	{
-		FDS::const_iterator i = fds.find(fd);
-		if (i == fds.end())
-			return fd;
-		fd++;
-	}
-}
+	/* It doesn't matter what fd we create; we only want it for the number. */
 
-int FD::New(FD* fdo, int fd)
-{
-	RAIILock locked;
-
-	if (fd == -1)
-		fd = find_free();
-
-	fds[fd] = fdo;
-	cloexecs[fd] = false;
-
-#if 0
-	try
-	{
-		int realfd = fdo->GetRealFD();
-		log("mapped realfd %d -> linuxfd %d", realfd, fd);
-	}
-	catch (...)
-	{
-	}
-#endif
-
+	int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	CheckError(fd);
+	fcntl(fd, F_SETFD, 1);
 	return fd;
 }
 
-void FD::Delete(int fd)
+static Ref<FD> create_new_fdo(int fd)
 {
-	RAIILock locked;
+	/* First check to see if this is a valid FD. */
 
-	FDS::iterator i = fds.find(fd);
-	if (i == fds.end())
-		throw EBADF;
+	CheckError(fcntl(fd, F_GETFD, 0));
 
-	fds.erase(i);
-}
+	/* For now we'll assume it's a RealFD. */
 
-int FD::Dup(int fd, int newfd)
-{
-	RAIILock locked;
-
-	::Ref<FD> ref = FD::Get(fd);
-
-	if (newfd == -1)
-		newfd = find_free();
-
-	fds[newfd] = ref;
-	cloexecs[newfd] = cloexecs[fd];
-	//log("dup linuxfd %d -> %d", fd, newfd);
-
-	return newfd;
+	Ref<FD> fdo = new RealFD(fd);
+	FD::Set(fd, fdo);
+	return fdo;
 }
 
 Ref<FD> FD::Get(int fd)
 {
+	RAIILock locked;
+
+	//LOG("FD::Get(%d)", fd);
+
 	FDS::iterator i = fds.find(fd);
 	if (i == fds.end())
-		throw EBADF;
+		return create_new_fdo(fd);
 	return i->second;
 }
 
-bool FD::GetCloexec(int fd)
+void FD::Set(int fd, FD* fdo)
 {
 	RAIILock locked;
 
-	FDS::const_iterator i = fds.find(fd);
-	if (i == fds.end())
-		throw EBADF;
-	return cloexecs[fd];
+	LOG("FD::Set(%d)", fd);
+	fds[fd] = fdo;
 }
 
-
-void FD::SetCloexec(int fd, bool f)
+void FD::Unset(int fd)
 {
 	RAIILock locked;
 
-	FDS::const_iterator i = fds.find(fd);
-	if (i == fds.end())
-		throw EBADF;
-	cloexecs[fd] = f;
+	FDS::iterator i = fds.find(fd);
+	if (i != fds.end())
+		fds.erase(i);
 }
 
-void FD::Flush()
+Ref<VFSNode> FD::GetVFSNodeFor(int fd)
 {
-	RAIILock locked;
-
-	FDS::iterator i = fds.begin();
-	while (i != fds.end())
-	{
-		int fd = i->first;
-		if (cloexecs[fd])
-		{
-			//log("closing fd %d", fd);
-			fds.erase(i++);
-		}
-		else
-		{
-			//log("not closing fd %d", fd);
-			i++;
-		}
-	}
-}
-
-map<int, int> FD::GetFDMap()
-{
-	map<int, int> fdmap;
-
-	FDS::iterator i = fds.begin();
-	while (i != fds.end())
-	{
-		try
-		{
-			int realfd = i->second->GetRealFD();
-			fdmap[i->first] = realfd;
-		}
-		catch (int e)
-		{
-		}
-
-		i++;
-	}
-
-	return fdmap;
-}
-
-Ref<VFSNode> FD::GetVFSNodeFor(int linuxfd)
-{
-	if (linuxfd == LINUX_AT_FDCWD)
+	if (fd == LINUX_AT_FDCWD)
 		return VFS::GetCWDNode();
 
-	Ref<FD> reffd = FD::Get(linuxfd);
-	DirFD* dirfd = DirFD::Cast(reffd);
-	return dirfd->GetVFSNode();
+	Ref<FD> ref = FD::Get(fd);
+	Ref<VFSNode> vfsnode = ref->GetVFSNode();
+	if (!vfsnode)
+		throw ENOTDIR;
+	return vfsnode;
 }
 
 /* --- General FD management --------------------------------------------- */
 
-FD::FD()
+FD::FD(int fd):
+	_fd(fd),
+	_dirdata(NULL)
 {
+	FD::Set(fd, this);
+}
+
+FD::FD(int fd, VFSNode* node):
+	_fd(fd),
+	_node(node),
+	_dirdata(NULL)
+{
+	FD::Set(fd, this);
 }
 
 FD::~FD()
 {
+	delete _dirdata;
 }
 
 /* --- Default methods --------------------------------------------------- */
 
-int FD::GetRealFD() const
+void FD::Close()
 {
-	throw EINVAL;
+	LOG("%p: close(%d)", this, _fd);
+	int i = close(_fd);
+	CheckError(i);
+	FD::Unset(_fd);
+	_fd = -1;
 }
 
-int FD::ReadV(const struct iovec* iov, int iovcnt)
+int FD::Dup(int destfd)
 {
-	throw EINVAL;
-}
+	int fd = GetFD();
 
-int FD::WriteV(const struct iovec* iov, int iovcnt)
-{
-	throw EINVAL;
-}
+	int result;
+	if (destfd == -1)
+		result = destfd = dup(fd);
+	else
+		result = dup2(fd, destfd);
 
-int FD::Read(void* buffer, size_t size)
-{
-	throw EINVAL;
-}
-
-int FD::Write(const void* buffer, size_t size)
-{
-	throw EINVAL;
-}
-
-int64_t FD::Seek(int whence, int64_t offset)
-{
-	throw EINVAL;
-}
-
-void FD::Truncate(int64_t offset)
-{
-	throw EINVAL;
-}
-
-void FD::Fsync()
-{
-}
-
-void FD::Flock(int operation)
-{
-	throw EINVAL;
-}
-
-void FD::Fstat(struct stat& ls)
-{
-	throw EINVAL;
-}
-
-void FD::Fchmod(mode_t mode)
-{
-	throw EINVAL;
-}
-
-void FD::Fchown(uid_t owner, gid_t group)
-{
-	throw EINVAL;
+	CheckError(result);
+	return result;
 }
 
 int FD::Fcntl(int cmd, u_int32_t argument)
 {
+	switch (cmd)
+	{
+		case LINUX_F_DUPFD:
+			return Dup();
+		{
+			int i = dup(_fd);
+			CheckError(i);
+			return i;
+		}
+
+		case LINUX_F_GETFD:
+		{
+			int i = fcntl(_fd, F_GETFD, 0) ? LINUX_FD_CLOEXEC : 0;
+			CheckError(i);
+			return i;
+		}
+
+		case LINUX_F_SETFD:
+		{
+			int i = fcntl(_fd, F_SETFD, argument & LINUX_FD_CLOEXEC);
+			CheckError(i);
+			return 0;
+		}
+	}
+
 	error("unsupported fcntl %08x", cmd);
 }
 
 int FD::Ioctl(int cmd, u_int32_t argument)
 {
 	error("unsupported ioctl %08x", cmd);
+}
+
+FD::DirData& FD::get_dirdata()
+{
+	if (_dirdata)
+		return *_dirdata;
+
+	_dirdata = new DirData();
+	if (!_dirdata)
+		throw ENOMEM;
+
+	_dirdata->pos = 0;
+	_dirdata->contents = GetVFSNode()->Enumerate();
+	return *_dirdata;
+}
+
+static int get_file_type(const struct stat& st)
+{
+	if (S_ISDIR(st.st_mode))
+		return LINUX_DT_DIR;
+	if (S_ISCHR(st.st_mode))
+		return LINUX_DT_CHR;
+	if (S_ISBLK(st.st_mode))
+		return LINUX_DT_BLK;
+	if (S_ISREG(st.st_mode))
+		return LINUX_DT_REG;
+	if (S_ISFIFO(st.st_mode))
+		return LINUX_DT_FIFO;
+	if (S_ISSOCK(st.st_mode))
+		return LINUX_DT_SOCK;
+	if (S_ISLNK(st.st_mode))
+		return LINUX_DT_LNK;
+	return LINUX_DT_UNKNOWN;
+}
+
+int FD::GetDents(void* buffer, size_t count)
+{
+	RAIILock locked;
+	Ref<VFSNode>& vfsnode = GetVFSNode();
+	if (!vfsnode)
+		throw ENOTDIR;
+
+	u8* ptr = (u8*) buffer;
+	DirData& dd = get_dirdata();
+	unsigned int byteswritten = 0;
+	for (;;)
+	{
+		if (dd.pos == dd.contents.size())
+			break;
+
+		try
+		{
+			const string& filename = dd.contents[dd.pos];
+
+			struct stat st;
+			vfsnode->StatFile(filename, st);
+
+			size_t reclen = sizeof(struct compat_linux_dirent) +
+					filename.size() + 1;
+			reclen = (reclen + 3) & ~3; // align to 32 bit boundary
+			if ((count - byteswritten) < reclen)
+				break;
+
+			struct compat_linux_dirent* dirent = (struct compat_linux_dirent*) ptr;
+			dirent->d_ino = st.st_ino;
+			dirent->d_off = dd.pos + 1;
+			dirent->d_reclen = reclen;
+			strcpy(dirent->d_name, filename.c_str());
+
+			ptr += reclen;
+			byteswritten += reclen;
+		}
+		catch (int e)
+		{
+			/* Something weird happened while enumerating the directory; just
+			 * ignore this file.
+			 */
+		}
+
+		dd.pos++;
+	}
+
+	return byteswritten;
+}
+
+int FD::GetDents64(void* buffer, size_t count)
+{
+	RAIILock locked;
+	Ref<VFSNode>& vfsnode = GetVFSNode();
+	if (!vfsnode)
+		throw ENOTDIR;
+
+	u8* ptr = (u8*) buffer;
+	DirData& dd = get_dirdata();
+	unsigned int byteswritten = 0;
+	for (;;)
+	{
+		if (dd.pos == dd.contents.size())
+			break;
+
+		try
+		{
+			const string& filename = dd.contents[dd.pos];
+
+			struct stat st;
+			vfsnode->StatFile(filename, st);
+
+			size_t reclen = sizeof(struct linux_dirent64) +
+					filename.size() + 1;
+			reclen = (reclen + 7) & ~7; // align to 64 bit boundary
+			if ((count - byteswritten) < reclen)
+				break;
+
+			struct linux_dirent64* dirent = (struct linux_dirent64*) ptr;
+			dirent->d_ino = st.st_ino;
+			dirent->d_off = dd.pos + 1;
+			dirent->d_reclen = reclen;
+			dirent->d_type = get_file_type(st);
+			strcpy(dirent->d_name, filename.c_str());
+
+			ptr += reclen;
+			byteswritten += reclen;
+		}
+		catch (int e)
+		{
+			/* Something weird happened while enumerating the directory; just
+			 * ignore this file.
+			 */
+		}
+
+		dd.pos++;
+	}
+
+	return byteswritten;
 }

@@ -132,3 +132,10 @@ string StringF(const char* format, ...)
 
 	return string(buffer);
 }
+
+int CheckError(int i)
+{
+	if (i == -1)
+		throw errno;
+	return i;
+}

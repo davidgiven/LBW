@@ -85,10 +85,7 @@ Ref<FD> VFS::OpenDirectory(VFSNode* cwd, const string& path, bool nofollow)
 #endif
 
 	node = node->Traverse(leaf);
-
-	Ref<DirFD> dirfd = new DirFD();
-	dirfd->Open(node);
-	return (FD*) dirfd;
+	return node->OpenDirectory();
 }
 
 Ref<FD> VFS::OpenFile(VFSNode* cwd, const string& path, int flags, int mode,

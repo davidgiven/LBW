@@ -21,7 +21,7 @@ enum
 static int probe_executable(const string& filename)
 {
 	Ref<FD> ref = VFS::OpenFile(NULL, filename);
-	int fd = ref->GetRealFD();
+	int fd = ref->GetFD();
 
 	char buffer[4];
 	if (pread(fd, buffer, sizeof(buffer), 0) == -1)
@@ -99,7 +99,7 @@ static bool issep(int c)
 static void shell_exec(const string& pathname, const char* argv[], const char* environ[])
 {
 	Ref<FD> ref = VFS::OpenFile(NULL, pathname);
-	int fd = ref->GetRealFD();
+	int fd = ref->GetFD();
 
 	/* We know this will work, because we've just tried it when probing the
 	 * file.
@@ -182,35 +182,9 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 		else
 			chdir("/");
 
-		/* Adjust the fd map so that Interix sees the same mappings that Linux
-		 * is.
-		 */
-
-		FD::Flush(); // free cloexec file descriptors
-		map<int, int> fdmap = FD::GetFDMap();
-
-		map<int, int>::const_iterator i = fdmap.begin();
-		while (i != fdmap.end())
-		{
-			//log("linuxfd %d maps to realfd %d", i->first, i->second);
-			if (i->first != i->second)
-			{
-				if (fdmap.find(i->second) != fdmap.end())
-				{
-					int newfd = dup(i->first);
-					//log("copying realfd %d -> %d", i->first, newfd);
-					fdmap[i->second] = newfd;
-				}
-
-				//log("copying realfd %d -> %d", i->second, i->first);
-				int fd = dup2(i->second, i->first);
-				assert(fd != -1);
-			}
-			i++;
-		}
-
 		/* Now actually perform the exec. */
 
+		//log("exec <%s>", pathname.c_str());
 		switch (type)
 		{
 			case ELF_EXECUTABLE:
