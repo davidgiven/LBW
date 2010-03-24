@@ -127,17 +127,19 @@ static void shell_exec(const string& pathname, const char* argv[], const char* e
 	{
 		arg_start = interpreter_end + 1;
 
-		while (issep(*arg_start))
+		while (issep(*arg_start) && !isterm(*arg_start))
 			arg_start++;
 
 		if (isterm(*arg_start))
 			arg_start = NULL;
+		else
+		{
+			char* arg_end = arg_start + 1;
 
-		char* arg_end = arg_start + 1;
-
-		while (!issep(*arg_end))
-			arg_end++;
-		*arg_end = '\0';
+			while (!issep(*arg_end))
+				arg_end++;
+			*arg_end = '\0';
+		}
 	}
 
 	*interpreter_end = '\0';
