@@ -56,7 +56,7 @@ SYSCALL(sys_uname)
 	strncpy(lu.sysname, "Linux", sizeof(lu.sysname));
 	strncpy(lu.nodename, iu.nodename, sizeof(lu.nodename));
 	strncpy(lu.release, "2.6.23", sizeof(lu.release));
-	strncpy(lu.version, "LWB emulation 0.1", sizeof(lu.version));
+	strncpy(lu.version, "LWB emulation " VERSION, sizeof(lu.version));
 	strncpy(lu.machine, iu.machine, sizeof(lu.machine));
 	return 0;
 }
