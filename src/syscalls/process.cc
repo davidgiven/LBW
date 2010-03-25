@@ -80,6 +80,7 @@ SYSCALL(sys_getuid)
 {
 	if (Options.FakeRoot)
 		return 0;
+
 	return getuid();
 }
 
@@ -120,6 +121,9 @@ SYSCALL(sys_geteuid16)
 
 SYSCALL(sys_getgid)
 {
+	if (Options.FakeRoot)
+		return 0;
+
 	return getgid();
 }
 
@@ -127,22 +131,34 @@ SYSCALL(sys_setgid)
 {
 	gid_t gid = arg.a0.u;
 
+	if (Options.FakeRoot)
+		return 0;
+
 	int result = setgid(gid);
 	return SysError(result);
 }
 
 SYSCALL(sys_getgid16)
 {
+	if (Options.FakeRoot)
+		return 0;
+
 	return high2lowgid(getgid());
 }
 
 SYSCALL(sys_getegid)
 {
+	if (Options.FakeRoot)
+		return 0;
+
 	return getegid();
 }
 
 SYSCALL(sys_getegid16)
 {
+	if (Options.FakeRoot)
+		return 0;
+
 	return high2lowgid(getegid());
 }
 

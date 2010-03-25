@@ -222,7 +222,7 @@ void InterixVFSNode::Chown(const string& name, uid_t owner, gid_t group)
 	RAIILock locked;
 	setup();
 
-	if (Options.FakeRoot && (owner == 0))
+	if (Options.FakeRoot)
 		return;
 
 	int i = chown(name.c_str(), owner, group);
