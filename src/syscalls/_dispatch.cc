@@ -128,6 +128,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(102, compat_sys_socketcall);
 		CALL_SYSCALL(104, compat_sys_setitimer);
 		CALL_SYSCALL(108, compat_sys_newfstat);
+		CALL_SYSCALL(114, compat_sys_wait4);
 		CALL_SYSCALL(116, compat_sys_sysinfo);
 		CALL_SYSCALL(118, sys_fsync);
 		CALL_SYSCALL(120, sys32_clone);
@@ -142,6 +143,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(144, sys_msync);
 		CALL_SYSCALL(146, compat_sys_writev);
 		CALL_SYSCALL(162, compat_sys_nanosleep);
+		CALL_SYSCALL(163, sys_mremap);
 		CALL_SYSCALL(168, sys_poll);
 		CALL_SYSCALL(174, sys32_rt_sigaction);
 		CALL_SYSCALL(175, sys32_rt_sigprocmask);

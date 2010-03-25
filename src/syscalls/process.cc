@@ -326,3 +326,18 @@ SYSCALL(sys32_waitpid)
 	//log("process <%d> return result <%08x>", result);
 	return SysError(result);
 }
+
+SYSCALL(compat_sys_wait4)
+{
+	pid_t pid = arg.a0.u;
+	int* stat_addr = (int*) arg.a1.p;
+	int options = arg.a2.s;
+	void* rusage = arg.a3.p;
+
+	int ioptions;
+	convert_waitoptions_l2i(options, ioptions);
+
+	/* Luckily, Interix and Linux wait statuses are compatible. */
+	int result = waitpid(pid, stat_addr, ioptions);
+	return CheckError(result);
+}

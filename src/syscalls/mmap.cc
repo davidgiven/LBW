@@ -515,3 +515,9 @@ SYSCALL(sys_msync)
 		throw errno;
 	return 0;
 }
+
+SYSCALL(sys_mremap)
+{
+	Warning("mremap() not implemented yet");
+	throw ENOSYS;
+}
