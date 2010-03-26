@@ -125,6 +125,7 @@ public:
 				"  --fakeroot       Enable a crude fakeroot mode\n"
 				"  --warnings       Show warnings for emulation problems\n"
 				"  --chroot <path>  Set up a fake chroot for path\n"
+				"  --forceload      Don't mmap() code, load it instead\n"
 				"\n"
 				"In order to run dynamic binaries, you must set up a chroot.\n"
 				"\n"
@@ -152,6 +153,11 @@ public:
 			CWD = "/";
 			return 2;
 		}
+		else if (option == "--forceload")
+		{
+			ForceLoad = true;
+			return 1;
+		}
 		else
 			BadOption();
 		return 1;
@@ -163,6 +169,7 @@ public:
 	string CWD;
 	bool FakeRoot : 1;
 	bool Warnings : 1;
+	bool ForceLoad : 1;
 };
 
 int main(int argc, const char* argv[], const char* environ[])
@@ -190,6 +197,9 @@ int main(int argc, const char* argv[], const char* environ[])
 
 		Options.Warnings = !!getenv("LBW_WARNINGS");
 		unsetenv("LBW_WARNINGS");
+
+		Options.Warnings = !!getenv("LBW_FORCELOAD");
+		unsetenv("LBW_FORCELOAD");
 
 		const char* s = getenv("LBW_CHROOT");
 		if (s)
@@ -240,6 +250,7 @@ int main(int argc, const char* argv[], const char* environ[])
 		Options.Chroot = buffer;
 		Options.FakeRoot = ap.FakeRoot;
 		Options.Warnings = ap.Warnings;
+		Options.ForceLoad = ap.ForceLoad;
 		VFS::SetRoot(Options.Chroot);
 		VFS::SetCWD(NULL, ap.CWD);
 

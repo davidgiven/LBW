@@ -48,6 +48,7 @@ struct Options_s
 	string Chroot;           // current chroot, or empty
 	bool FakeRoot : 1;       // is fakeroot enabled?
 	bool Warnings : 1;       // are we showing warnings?
+	bool ForceLoad : 1;      // force all data to be read into RAM, not mapped
 };
 
 extern Options_s Options;

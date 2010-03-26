@@ -44,7 +44,7 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 	while (environ[envc])
 		envc++;
 
-	const char* newenviron[envc + 7];
+	const char* newenviron[envc + 8];
 	memset(newenviron, 0, sizeof(newenviron));
 
 	int index = 0;
@@ -56,6 +56,8 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 		newenviron[index++] = "LBW_FAKEROOT=1";
 	if (Options.Warnings)
 		newenviron[index++] = "LBW_WARNINGS=1";
+	if (Options.ForceLoad)
+		newenviron[index++] = "LBW_FORCELOAD=1";
 
 	if (!Options.Chroot.empty())
 	{

@@ -378,7 +378,8 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, int fd, u32 offset)
 		 */
 
 		u8* loadaddr = addr;
-		if (MemOp::Aligned<BLOCK_SIZE>(addr) && MemOp::Aligned<BLOCK_SIZE>(offset))
+		if (!Options.ForceLoad && MemOp::Aligned<BLOCK_SIZE>(addr)
+				&& MemOp::Aligned<BLOCK_SIZE>(offset))
 		{
 #if defined VERBOSE
 			log("aligned!");
