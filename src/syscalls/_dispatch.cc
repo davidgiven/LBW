@@ -103,6 +103,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 40, sys_rmdir);
 		CALL_SYSCALL( 41, sys_dup);
 		CALL_SYSCALL( 42, sys_pipe);
+		CALL_SYSCALL( 43, compat_sys_times);
 		CALL_SYSCALL( 45, sys_brk);
 		CALL_SYSCALL( 47, sys_getgid16);
 		CALL_SYSCALL( 49, sys_geteuid16);

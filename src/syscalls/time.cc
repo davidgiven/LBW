@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "syscalls.h"
+#include <sys/times.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -130,4 +131,14 @@ SYSCALL(sys_alarm)
 	int i = alarm(t);
 	CheckError(i);
 	return 0;
+}
+
+/* compat_tms is compatible. */
+SYSCALL(compat_sys_times)
+{
+	struct tms* tms = (struct tms*) arg.a0.p;
+
+	clock_t t = times(tms);
+	CheckError(t);
+	return t;
 }
