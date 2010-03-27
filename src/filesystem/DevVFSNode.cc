@@ -27,7 +27,7 @@ static const DevFile devices[] =
 	{ "urandom",   "/dev/urandom" },
 	{ "full",      "/dev/full" },
 	{ "ptmx",      "/dev/ptmx" },
-	{ "ptyp0",     "/dev/ptyp0" },
+	{ "console",   "/dev/console" },
 };
 
 #define lengthof(array) (sizeof(array) / sizeof(*array))
