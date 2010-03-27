@@ -27,11 +27,11 @@ static int copystring1(const string& s, char* buffer, size_t len)
 
 static int copystring2(const string& s, char* buffer, size_t len)
 {
-	size_t slen = s.size() + 1;
+	size_t slen = s.size();
 	if (slen > len)
 		slen = len;
 
-	memcpy(buffer, s.c_str(), slen);
+	memcpy(buffer, s.data(), slen);
 	return slen;
 }
 
@@ -64,6 +64,10 @@ SYSCALL(sys_readlink)
 	size_t len = arg.a2.u;
 
 	string target = VFS::ReadLink(NULL, path);
+
+	struct stat st;
+	VFS::Lstat(NULL, path, st);
+
 	return copystring2(target, buffer, len);
 }
 
