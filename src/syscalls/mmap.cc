@@ -69,7 +69,9 @@ public:
 				MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS,
 				-1, 0);
 		if (result != address)
+		{
 			throw errno;
+		}
 
 #if defined VERBOSE
 		log("FragmentedBlock(%08x)", address);
@@ -521,4 +523,14 @@ SYSCALL(sys_mremap)
 {
 	Warning("mremap() not implemented yet");
 	throw ENOSYS;
+}
+
+void MakeWriteable(u8* addr, u32 length)
+{
+	u8* topaddr = MemOp::AlignUp<0x10000>(addr + length - 1);
+	addr = MemOp::Align<0x10000>(addr);
+
+	blockstore.GetPageMap(addr);
+	if (topaddr != addr)
+		blockstore.GetPageMap(topaddr);
 }

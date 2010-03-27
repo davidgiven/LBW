@@ -5,6 +5,10 @@
 
 #include "globals.h"
 #include "MemOp.h"
+#include "syscalls/mmap.h"
+#include <sys/mman.h>
+
+#define RET 0xc3
 
 #define EXCEPTION_MAXIMUM_PARAMETERS 15
 #define MAXIMUM_SUPPORTED_EXTENSION 512
@@ -205,23 +209,6 @@ static u32 getmodrmsize(int modrm)
 	return 0;
 }
 
-template <typename T, typename S> static T read(S& reg)
-{
-	T value = *(T*) reg;
-	reg += sizeof(T);
-	return value;
-}
-
-template <typename T, typename S> static void store(T value, S address)
-{
-	*(T*)address = value;
-}
-
-template <typename T, typename S> static T load(S address)
-{
-	return *(T*)address;
-}
-
 static void dumpbuffer(u8* out, u32 insnlength)
 {
 #if defined VERBOSE
@@ -230,7 +217,7 @@ static void dumpbuffer(u8* out, u32 insnlength)
 #endif
 }
 
-static void patchedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 patchoffset)
+static u8* patchedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 patchoffset)
 {
 	u32 linear = (u32) pthread_getspecific(linear_key);
 
@@ -240,15 +227,17 @@ static void patchedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 patch
 #endif
 
 	memcpy(out, (void*) regs.Eip, insnlength);
-	u32 const32 = load<u32>(out + patchoffset);
-	store<u32>(const32 + linear, out + patchoffset);
-	store<u32>(0xc3, out + insnlength);
+	u32 const32 = MemOp::Load<u32>(out + patchoffset);
+	MemOp::Store<u32>(const32 + linear, out + patchoffset);
+	MemOp::Store<u8>(RET, out + insnlength);
 
 	dumpbuffer(out, insnlength);
 	regs.Eip += insnlength;
+
+	return out + insnlength + 1;
 }
 
-static void mungedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 insertat)
+static u8* mungedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 insertat)
 {
 	u32 linear = (u32) pthread_getspecific(linear_key);
 
@@ -272,23 +261,26 @@ static void mungedinstruction(CONTEXT& regs, u8* out, u32 insnlength, u32 insert
 		memcpy((void*)(out + 6), (void*)(regs.Eip + insertat),
 				insnlength - insertat);
 
-	MemOp::Store<u8> (0xc3,   out + insnlength + 4); /* ret */
+	MemOp::Store<u8> (RET,    out + insnlength + 4); /* ret */
 
 	dumpbuffer(out, 7);
 	regs.Eip += insnlength;
 
+	return out + insnlength + 5;
 	//assert(insertat == insnlength);
 }
 
-static void nopinstruction(CONTEXT& regs, u8* out, u32 insnlength)
+static u8* nopinstruction(CONTEXT& regs, u8* out, u32 insnlength)
 {
-	out[0] = 0xc3; // ret
+	MemOp::Store<u8>(RET, out);
 
 	dumpbuffer(out, 1);
 	regs.Eip += insnlength;
+
+	return out + 1;
 }
 
-static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
+static u32 translate_gs_instruction(CONTEXT& regs, u8* buffer)
 {
 	u8* out = buffer;
 
@@ -312,7 +304,7 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 					u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 					switch (getmodrmsize(modrm))
 					{
-						case 4:	 return patchedinstruction(regs, out, 7, 3);
+						case 4:	 return patchedinstruction(regs, out, 7, 3) - buffer;
 						default: goto unknown;
 					}
 				}
@@ -327,8 +319,8 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 			switch (getmodrmsize(modrm))
 			{
-				case 0:  return mungedinstruction(regs, out, 3, 2);
-				case 4:  return patchedinstruction(regs, out, 7, 2);
+				case 0:  return mungedinstruction(regs, out, 3, 2) - buffer;
+				case 4:  return patchedinstruction(regs, out, 7, 2) - buffer;
 				default: goto unknown;
 			}
 		}
@@ -338,7 +330,7 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 			switch (getmodrmsize(modrm))
 			{
-				case 4:	 return patchedinstruction(regs, out, 6, 2);
+				case 4:	 return patchedinstruction(regs, out, 6, 2) - buffer;
 				default: goto unknown;
 			}
 		}
@@ -353,8 +345,8 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 			switch (getmodrmsize(modrm))
 			{
-				case 0:  return mungedinstruction(regs, out, 2, 2);
-				case 4:	 return patchedinstruction(regs, out, 6, 2);
+				case 0:  return mungedinstruction(regs, out, 2, 2) - buffer;
+				case 4:	 return patchedinstruction(regs, out, 6, 2) - buffer;
 				default: goto unknown;
 			}
 		}
@@ -363,14 +355,14 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 		case 0xa1: // mov [gs+offset], eax
 		case 0xa2: // mov al, [gs+offset]
 		case 0xa3: // mov eax, [gs+offset]
-			return patchedinstruction(regs, out, 5, 1);
+			return patchedinstruction(regs, out, 5, 1) - buffer;
 
 		case 0xc6: // <group 12> Eb, Ib
 		{
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 			switch (getmodrmsize(modrm))
 			{
-				case 4:  return patchedinstruction(regs, out, 7, 2);
+				case 4:  return patchedinstruction(regs, out, 7, 2) - buffer;
 				default: goto unknown;
 			}
 		}
@@ -381,8 +373,8 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 			u8 modrm = MemOp::LoadAndAdvance<u8>(ip);
 			switch (getmodrmsize(modrm))
 			{
-				case 0:  return mungedinstruction(regs, out, 6, 2);
-				case 4:  return patchedinstruction(regs, out, 10, 2);
+				case 0:  return mungedinstruction(regs, out, 6, 2) - buffer;
+				case 4:  return patchedinstruction(regs, out, 10, 2) - buffer;
 				default: goto unknown;
 			}
 		}
@@ -396,9 +388,85 @@ static void translate_gs_instruction(CONTEXT& regs, u8* buffer)
 	}
 }
 
+static u8* allocateFragment(u32 size)
+{
+	static u8* block = NULL;
+	static u32 index = 0;
+
+	if ((!block) || ((index + size) > 0x10000))
+	{
+		void* result = mmap(NULL, 0x10000,
+				PROT_READ | PROT_WRITE | PROT_EXEC,
+				MAP_PRIVATE | MAP_ANONYMOUS,
+				-1, 0);
+		if (result == MAP_FAILED)
+		{
+			log("allocateFragment failed");
+			throw ENOMEM;
+		}
+
+		block = (u8*) result;
+		index = 0;
+	}
+
+	u8* addr = block + index;
+	index += size;
+	return addr;
+}
+
+static void writeJumpInstruction(u32 target, u32 address)
+{
+	MemOp::Store<u8>(0xe9, address);
+	MemOp::Store<u32>((u32)(target - address - 5), address+1);
+}
+
+static s32 copy_or_jump(EXCEPTION_POINTERS* ep, u32 ibegin, u32 ilen,
+		u8* trampoline, u32 olen)
+{
+	if (ilen >= 5)
+	{
+		/* The original instruction is big enough that we can patch a
+		 * JMP instruction into it, permanently changing it to point
+		 * at our new piece of trampoline code. This means we avoid
+		 * the page fault and context switch next time we hit this
+		 * instruction.
+		 */
+
+		try
+		{
+			/* Ensure that the destination code is writeable. */
+
+			MakeWriteable((u8*) ibegin, 5);
+
+			/* Copy the generated code into its own fragment. */
+
+			u8* fragment = allocateFragment(olen);
+			memcpy(fragment, trampoline, olen);
+
+			writeJumpInstruction((u32) fragment, ibegin);
+			ep->ContextRecord->Eip = (u32) fragment;
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+		catch (int e)
+		{
+			/* Something went wrong. As we're in an exception handler
+			 * there's not much we can do about it so fall back to the
+			 * old behaviour.
+			 */
+
+			Warning("ehandler fragment copy failed with errno %d", e);
+		}
+	}
+	else
+		ep->ContextRecord->Eip = (u32) trampoline;
+	return EXCEPTION_CONTINUE_EXECUTION;
+
+}
+
 static s32 __stdcall handler_cb(EXCEPTION_POINTERS* ep)
 {
-	static u8 trampoline[32];
+	RAIILock locked;
+	static u8* trampoline = allocateFragment(32);
 
 	if (ep->ExceptionRecord->ExceptionCode == EXCEPTION_PRIV_INSTRUCTION)
 		printregs(*ep->ContextRecord);
@@ -429,30 +497,13 @@ static s32 __stdcall handler_cb(EXCEPTION_POINTERS* ep)
 			MemOp::Store<u32>(ep->ContextRecord->Eip+2, trampoline+1); // return address
 			MemOp::Store<u8>(0x68, trampoline+5); // push Iz
 			MemOp::Store<u32>((u32) Linux_MCE, trampoline+6); // syscall handler
-			MemOp::Store<u8>(0xc3, trampoline+10); // ret
-			ep->ContextRecord->Eip = (u32) trampoline;
-
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-
-		case 0x65: /* GS: */
-		{
-			/* This is an instruction that uses %gs in some way. These
-			 * have to be translated before execution.
-			 */
-
-			translate_gs_instruction(*ep->ContextRecord, trampoline+5);
-
-			MemOp::Store<u8>(0x68, trampoline+0); // push Iz
-			MemOp::Store<u32>(ep->ContextRecord->Eip, trampoline+1); // return address
-
+			MemOp::Store<u8>(RET, trampoline+10); // ret
 			ep->ContextRecord->Eip = (u32) trampoline;
 
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
 		case 0xf0: /* LOCK */
-		{
 			/* We should only get this if this is a locked GS:
 			 * instruction.
 			 */
@@ -460,19 +511,23 @@ static s32 __stdcall handler_cb(EXCEPTION_POINTERS* ep)
 			if (code[1] != 0x65)
 				goto fallback;
 
-			/* It is. We just translate the instruction as normal, but
-			 * with the lock byte in front.
+			log("LOCK");
+			/* fall through */
+		case 0x65: /* GS: */
+		{
+			/* This is an instruction that uses %gs in some way. These
+			 * have to be translated before execution.
 			 */
 
-			trampoline[5] = 0xf0;
-			translate_gs_instruction(*ep->ContextRecord, trampoline+6);
+			u32 ibegin = ep->ContextRecord->Eip;
+			u32 olen = translate_gs_instruction(*ep->ContextRecord, trampoline+5);
+			u32 ilen = ep->ContextRecord->Eip - ibegin;
 
 			MemOp::Store<u8>(0x68, trampoline+0); // push Iz
 			MemOp::Store<u32>(ep->ContextRecord->Eip, trampoline+1); // return address
+			olen += 5;
 
-			ep->ContextRecord->Eip = (u32) trampoline;
-
-			return EXCEPTION_CONTINUE_EXECUTION;
+			return copy_or_jump(ep, ibegin, ilen, trampoline, olen);
 		}
 
 		case 0x8e: /* GS load, probably */

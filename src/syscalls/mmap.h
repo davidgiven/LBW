@@ -25,5 +25,6 @@
 extern u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, int fd, u32 offset);
 extern void do_munmap(u8* addr, u32 len);
 extern void UnmapAll();
+extern void MakeWriteable(u8* addr, u32 len);
 
 #endif
