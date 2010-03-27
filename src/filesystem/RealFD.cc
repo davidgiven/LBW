@@ -201,6 +201,13 @@ void RealFD::Bind(const struct sockaddr* sa, int addrlen)
 	}
 }
 
+void RealFD::Shutdown(int how)
+{
+	int fd = GetFD();
+	int result = shutdown(fd, how);
+	CheckError(result);
+}
+
 void RealFD::SetSockopt(int level, int optname, const void* option,
 		int optlen)
 {

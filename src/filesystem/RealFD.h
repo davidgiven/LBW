@@ -41,6 +41,7 @@ public:
 
 	void Connect(const struct sockaddr* addr, int addrlen);
 	void Bind(const struct sockaddr* addr, int addrlen);
+	void Shutdown(int how);
 
 	void SetSockopt(int level, int optname, const void* option,	int optlen);
 	void GetSockopt(int level, int optname, void* option, int* optlen);

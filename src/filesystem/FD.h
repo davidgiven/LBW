@@ -63,6 +63,7 @@ public:
 
 	virtual void Connect(const struct sockaddr* addr, int addrlen) { throw EINVAL; }
 	virtual void Bind(const struct sockaddr* addr, int addrlen) { throw EINVAL; }
+	virtual void Shutdown(int how) { throw EINVAL; }
 
 	virtual void SetSockopt(int level, int optname, const void* option,
 			int optlen) { throw EINVAL; }

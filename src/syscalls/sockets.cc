@@ -230,6 +230,15 @@ static int do_recvfrom(int fd, void *buf, size_t len, int flags,
 	return ref->RecvFrom(buf, len, iflags, from, fromlen);
 }
 
+static int do_shutdown(int fd, int how)
+{
+	/* how is compatible. */
+
+	Ref<FD> ref = FD::Get(fd);
+	ref->Shutdown(how);
+	return 0;
+}
+
 static ssize_t do_sendmsg(int fd, const struct linux_msghdr *msg, int flags)
 {
 	if (msg->msg_controllen > 0)
@@ -312,6 +321,9 @@ SYSCALL(compat_sys_socketcall)
 		case LINUX_SYS_RECVFROM:
 			return do_recvfrom(args[0], (void*) args[1], args[2],
 					args[3], (struct sockaddr*) args[4], (int*) args[5]);
+
+		case LINUX_SYS_SHUTDOWN:
+			return do_shutdown(args[0], args[1]);
 
 		case LINUX_SYS_SENDMSG:
 			return do_sendmsg(args[0], (const struct linux_msghdr*) args[1], args[2]);
