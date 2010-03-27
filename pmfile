@@ -76,7 +76,6 @@ lbw = cxxprogram {
 	cxxfile "src/syscalls/memory.cc",
 	cxxfile "src/syscalls/thread.cc",
 	cxxfile "src/syscalls/signals.cc",
-	cxxfile "src/syscalls/fork.cc",
 	cxxfile "src/syscalls/clone.cc",
 	cxxfile "src/syscalls/time.cc",
 	cxxfile "src/syscalls/sockets.cc",
