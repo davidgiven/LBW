@@ -103,6 +103,10 @@ int RealFD::Ioctl(int cmd, u_int32_t argument)
 		case LINUX_TCSETSF:
 			return linux_tcsetattr(fd, LINUX_TCSAFLUSH, (void*) argument);
 
+		case LINUX_TCFLSH:
+			result = ioctl(fd, TCFLSH, argument);
+			goto common;
+
 		case LINUX_TIOCGWINSZ:
 		{
 			/* Linux & Interix struct winsize are compatible */
@@ -139,6 +143,12 @@ int RealFD::Ioctl(int cmd, u_int32_t argument)
 		{
 			int& pgrp = *(int*) argument;
 			result = tcsetpgrp(fd, pgrp);
+			goto common;
+		}
+
+		case LINUX_TIOCCONS:
+		{
+			result = ioctl(fd, TIOCCONS, argument);
 			goto common;
 		}
 
