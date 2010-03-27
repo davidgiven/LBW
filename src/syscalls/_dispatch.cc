@@ -142,6 +142,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(143, sys_flock);
 		CALL_SYSCALL(144, sys_msync);
 		CALL_SYSCALL(146, compat_sys_writev);
+		CALL_SYSCALL(150, sys_mlock);
 		CALL_SYSCALL(162, compat_sys_nanosleep);
 		CALL_SYSCALL(163, sys_mremap);
 		CALL_SYSCALL(168, sys_poll);
