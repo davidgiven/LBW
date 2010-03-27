@@ -88,8 +88,21 @@ void VFSNode::Resolve(const string& path, Ref<VFSNode>& node, string& leaf,
 		else
 			element = path.substr(left, right-left);
 
+		/* Discard any trailing /. */
+
+		if (right == (path.size() - 1))
+			right = string::npos;
+
 		if (element == "")
-			element = ".";
+		{
+			if (right == string::npos)
+			{
+				leaf = element;
+				return;
+			}
+			left = right + 1;
+			continue;
+		}
 
 		int type;
 		for (;;)

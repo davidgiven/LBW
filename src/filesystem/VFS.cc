@@ -64,7 +64,15 @@ void VFS::Resolve(VFSNode* cwd, const string& path, Ref<VFSNode>& node,
 #endif
 
 	string p = path;
-	if (!p.empty() && (p[0] == '/'))
+	if (p == "/")
+	{
+		if (!cwd)
+			node = ::cwd;
+		else
+			node = cwd;
+		leaf = ".";
+	}
+	else if (!p.empty() && (p[0] == '/'))
 		root->Resolve(p.substr(1), node, leaf, followlink);
 	else
 	{
@@ -290,7 +298,7 @@ void VFS::Lchown(VFSNode* cwd, const string& path, uid_t owner, gid_t group)
 void VFS::Link(VFSNode* cwd, const string& target, const string& path)
 {
 #if defined VERBOSE
-	log("%s(%s, %s)", __FUNCTION__, from.c_str(), to.c_str());
+	log("%s(%s, %s)", __FUNCTION__, target.c_str(), path.c_str());
 #endif
 
 	Ref<VFSNode> targetnode;
@@ -323,7 +331,7 @@ void VFS::Unlink(VFSNode* cwd, const string& path)
 void VFS::Symlink(VFSNode* cwd, const string& target, const string& path)
 {
 #if defined VERBOSE
-	log("%s(%s, %s)", __FUNCTION__, from.c_str(), to.c_str());
+	log("%s(%s, %s)", __FUNCTION__, target.c_str(), path.c_str());
 #endif
 
 	Ref<VFSNode> node;

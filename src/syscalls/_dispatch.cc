@@ -217,7 +217,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 	catch (int e)
 	{
 #if defined VERBOSE
-		log("-> (failed) %d", -ErrnoI2L(e));
+		log("-> (failed) %d", e);
 #endif
 		return -ErrnoI2L(e);
 	}

@@ -80,7 +80,9 @@ void InterixVFSNode::setup()
 
 void InterixVFSNode::setup(const string& name, int e)
 {
-	if ((name == ".") || (name == "..") || name.empty())
+	if (name.empty())
+		throw ENOENT;
+	if ((name == ".") || (name == ".."))
 		throw e;
 	setup();
 }
@@ -146,6 +148,8 @@ string InterixVFSNode::ReadLink(const string& name)
 void InterixVFSNode::MkDir(const string& name, int mode)
 {
 	RAIILock locked;
+
+	//log("mkdir(%s %s)", GetPath().c_str(), name.c_str());
 
 	/* Succeed silently if trying to make the current directory. */
 	if (name == ".")
