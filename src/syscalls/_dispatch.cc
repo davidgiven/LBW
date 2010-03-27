@@ -175,8 +175,10 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(220, compat_sys_getdents64);
 		CALL_SYSCALL(221, compat_sys_fcntl64);
 		CALL_SYSCALL(224, sys_gettid);
+		CALL_SYSCALL(228, sys_fsetxattr);
 		CALL_SYSCALL(229, sys_getxattr);
 		CALL_SYSCALL(230, sys_lgetxattr);
+		CALL_SYSCALL(231, sys_fgetxattr);
 		CALL_SYSCALL(240, compat_sys_futex);
 		CALL_SYSCALL(252, sys_exit_group);
 		CALL_SYSCALL(258, sys_set_tid_address);

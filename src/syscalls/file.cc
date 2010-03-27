@@ -334,20 +334,30 @@ SYSCALL(compat_sys_utimensat)
 
 SYSCALL(sys_getxattr)
 {
-	const char* path = (const char*) arg.a0.p;
-	const char* name = (const char*) arg.a1.p;
-	void* value = arg.a2.p;
-	size_t size = arg.a3.u;
+//	const char* path = (const char*) arg.a0.p;
+//	const char* name = (const char*) arg.a1.p;
+//	void* value = arg.a2.p;
+//	size_t size = arg.a3.u;
 
 	throw EOPNOTSUPP;
 }
 
 SYSCALL(sys_lgetxattr)
 {
-	const char* path = (const char*) arg.a0.p;
-	const char* name = (const char*) arg.a1.p;
-	void* value = arg.a2.p;
-	size_t size = arg.a3.u;
+	//const char* path = (const char*) arg.a0.p;
+	//const char* name = (const char*) arg.a1.p;
+	//void* value = arg.a2.p;
+	//size_t size = arg.a3.u;
 
+	throw EOPNOTSUPP;
+}
+
+SYSCALL(sys_fgetxattr)
+{
+	throw EOPNOTSUPP;
+}
+
+SYSCALL(sys_fsetxattr)
+{
 	throw EOPNOTSUPP;
 }
