@@ -54,6 +54,18 @@ public:
 		return _address;
 	}
 
+	virtual void Msync(size_t length, int flags)
+	{
+		int i = msync(_address, length, flags);
+		if (i == -1)
+			throw errno;
+	}
+
+	virtual u32 GetLength() const
+	{
+		return 0x10000;
+	}
+
 private:
 	u8* _address;
 };
@@ -100,7 +112,8 @@ public:
 	MappedBlock(u8* address, int realfd, u32 offset, u32 length,
 			bool shared, bool w, bool x):
 		Block(address),
-		_length(length)
+		_length(length),
+		_writeable(false)
 	{
 		int flags = MAP_FIXED;
 		if (shared)
@@ -110,7 +123,10 @@ public:
 
 		int prot = PROT_READ;
 		if (w)
+		{
 			prot |= PROT_WRITE;
+			_writeable = true;
+		}
 		if (x)
 			prot |= PROT_EXEC;
 
@@ -131,8 +147,17 @@ public:
 	{
 		return _length;
 	}
+
+	void Msync(size_t length, int flags)
+	{
+		if (!_writeable)
+			return;
+		Block::Msync(GetLength(), flags);
+	}
+
 private:
 	size_t _length;
+	bool _writeable : 1;
 };
 
 class BlockStore
@@ -515,25 +540,22 @@ SYSCALL(sys_msync)
 	length += MemOp::Offset<0x10000>(addr);
 	addr = MemOp::Align<0x10000>(addr);
 
-	int result = msync(addr, length, iflags);
-	if (result == -1)
-		throw errno;
-
-#if 0
-	log("msync(%p, %p, %p)", addr, length, iflags);
 	for (size_t i = 0; i < length; i += 0x10000)
 	{
-		size_t bs = length - i;
-		if (bs > 0x10000)
-			bs = 0x10000;
-		int result = msync(addr + i, bs, iflags);
-		if (result == -1)
+		Block*& b = blockstore.GetBlock(addr + i);
+
+		try
 		{
-			log("failed at %p+%p > %d %d", i, bs, result, errno);
-			throw errno;
+			b->Msync(b->GetLength(), iflags);
+		}
+		catch (int e)
+		{
+			if (e == EIO)
+				Warning("msync() reported EIO --- possibly spurious, so ignoring");
+			else
+				throw e;
 		}
 	}
-#endif
 	return 0;
 }
 
