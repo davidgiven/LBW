@@ -97,9 +97,10 @@ private:
 class MappedBlock : public Block
 {
 public:
-	MappedBlock(u8* address, int realfd, u32 offset,
+	MappedBlock(u8* address, int realfd, u32 offset, u32 length,
 			bool shared, bool w, bool x):
-		Block(address)
+		Block(address),
+		_length(length)
 	{
 		int flags = MAP_FIXED;
 		if (shared)
@@ -113,7 +114,7 @@ public:
 		if (x)
 			prot |= PROT_EXEC;
 
-		void* result = mmap(address, BLOCK_SIZE, prot, flags, realfd, offset);
+		void* result = mmap(address, _length, prot, flags, realfd, offset);
 		if (result != address)
 			throw errno;
 #if defined VERBOSE
@@ -125,6 +126,13 @@ public:
 	{
 		munmap(Address(), BLOCK_SIZE);
 	}
+
+	u32 GetLength() const
+	{
+		return _length;
+	}
+private:
+	size_t _length;
 };
 
 class BlockStore
@@ -160,12 +168,12 @@ public:
 		return _blocks[((u32)address - RANGE_BOTTOM) / BLOCK_SIZE];
 	}
 
-	/* address, length, offset must all be 64kB-aligned */
+	/* address, offset must be 64kB-aligned */
 	void Map(u8* address, u32 length, int realfd, u32 offset,
 					bool shared, bool w, bool x)
 	{
 		assert(MemOp::Aligned<BLOCK_SIZE>(address));
-		assert(MemOp::Aligned<BLOCK_SIZE>(length));
+		//assert(MemOp::Aligned<BLOCK_SIZE>(length));
 		assert(MemOp::Aligned<BLOCK_SIZE>(offset));
 
 		try
@@ -182,7 +190,10 @@ public:
 				Block*& block = GetBlock(address + i);
 				if (block)
 					delete block;
-				block = new MappedBlock(address + i, realfd, offset + i,
+				u32 bl = length - i;
+				if (bl > 0x10000)
+					bl = 0x10000;
+				block = new MappedBlock(address + i, realfd, offset + i, bl,
 						shared, w, x);
 			}
 		}
@@ -215,17 +226,18 @@ public:
 			 * again.
 			 */
 
+			u32 length = mb->GetLength();
 #if defined VERBOSE
-			log("converting block at %08x from mapped to fragmented", address);
+			log("converting block at %08x+%08x from mapped to fragmented", address, length);
 #endif
-			u8 copybuffer[BLOCK_SIZE];
-			memcpy(copybuffer, address, BLOCK_SIZE);
+			u8 copybuffer[length];
+			memcpy(copybuffer, address, length);
 
 			delete block;
 			FragmentedBlock* fb = new FragmentedBlock(address);
 			block = fb;
 
-			memcpy(address, copybuffer, BLOCK_SIZE);
+			memcpy(address, copybuffer, length);
 			fb->Pages().set();
 		}
 
@@ -395,33 +407,22 @@ u32 do_mmap(u8* addr, u32 len, u32 prot, u32 flags, int fd, u32 offset)
 			log("file length is %p, actually mapping %p", st.st_size, reallen);
 #endif
 
-			/* ...although remember we can only mmap() whole blocks. */
-
-			u32 alignedlen = MemOp::Align<BLOCK_SIZE>(reallen);
-#if defined VERBOSE
-			log("...which aligned is %p", alignedlen);
-#endif
-
-			if (alignedlen > 0)
-				blockstore.Map(addr, alignedlen, fd, offset, shared, w, x);
-
-			/* The rest gets loaded into a fragmented block. */
-
-			len -= alignedlen;
-			loadaddr += alignedlen;
-			offset += alignedlen;
+			if (reallen > 0)
+				blockstore.Map(addr, reallen, fd, offset, shared, w, x);
 		}
-
-#if defined VERBOSE
-		log("loading %08x+%08x @%08x", loadaddr, len, offset);
-#endif
-		for (u32 i = 0; i < len; i += PAGE_SIZE)
+		else
 		{
-			blockstore.UsePage(loadaddr + i);
+#if defined VERBOSE
+			log("loading %08x+%08x @%08x", loadaddr, len, offset);
+#endif
+			for (u32 i = 0; i < len; i += PAGE_SIZE)
+			{
+				blockstore.UsePage(loadaddr + i);
 
-			int r = pread(fd, loadaddr+i, PAGE_SIZE, offset+i);
-			if (r == -1)
-				throw errno;
+				int r = pread(fd, loadaddr+i, PAGE_SIZE, offset+i);
+				if (r == -1)
+					throw errno;
+			}
 		}
 	}
 
@@ -496,7 +497,7 @@ SYSCALL(sys32_mprotect)
 
 SYSCALL(sys_msync)
 {
-	void* addr = arg.a0.p;
+	u8* addr = (u8*) arg.a0.p;
 	size_t length = arg.a1.u;
 	int flags = arg.a2.s;
 
@@ -510,13 +511,37 @@ SYSCALL(sys_msync)
 
 	if (!MemOp::Aligned<0x1000>(addr))
 		throw EINVAL;
+
 	length += MemOp::Offset<0x10000>(addr);
 	addr = MemOp::Align<0x10000>(addr);
 
 	int result = msync(addr, length, iflags);
 	if (result == -1)
 		throw errno;
+
+#if 0
+	log("msync(%p, %p, %p)", addr, length, iflags);
+	for (size_t i = 0; i < length; i += 0x10000)
+	{
+		size_t bs = length - i;
+		if (bs > 0x10000)
+			bs = 0x10000;
+		int result = msync(addr + i, bs, iflags);
+		if (result == -1)
+		{
+			log("failed at %p+%p > %d %d", i, bs, result, errno);
+			throw errno;
+		}
+	}
+#endif
 	return 0;
+}
+
+SYSCALL(sys_mlock)
+{
+	void* addr = arg.a0.p;
+	size_t length = arg.a1.u;
+	throw ENOSYS;
 }
 
 SYSCALL(sys_mremap)
