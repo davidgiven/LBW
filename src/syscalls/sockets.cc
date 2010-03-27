@@ -189,6 +189,13 @@ static int do_getsockname(int fd, struct sockaddr* sa, int* namelen)
 	return 0;
 }
 
+static int do_getpeername(int fd, struct sockaddr* sa, int* namelen)
+{
+	Ref<FD> ref = FD::Get(fd);
+	ref->GetPeername(sa, namelen);
+	return 0;
+}
+
 static int do_send(int fd, const void *msg, size_t len, int flags)
 {
 	int iflags = convert_msg_flags(flags);
@@ -284,6 +291,10 @@ SYSCALL(compat_sys_socketcall)
 
 		case LINUX_SYS_GETSOCKNAME:
 			return do_getsockname(args[0], (struct sockaddr*) args[1],
+					(int*) args[2]);
+
+		case LINUX_SYS_GETPEERNAME:
+			return do_getpeername(args[0], (struct sockaddr*) args[1],
 					(int*) args[2]);
 
 		case LINUX_SYS_SEND:

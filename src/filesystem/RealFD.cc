@@ -236,6 +236,23 @@ void RealFD::GetSockname(struct sockaddr* sa, int* namelen)
 	}
 }
 
+void RealFD::GetPeername(struct sockaddr* sa, int* namelen)
+{
+	int fd = GetFD();
+	int result = getpeername(fd, sa, namelen);
+	if (result == -1)
+		throw errno;
+
+	switch (sa->sa_family)
+	{
+		case AF_INET:
+			break;
+
+		default:
+			assert(false);
+	}
+}
+
 int RealFD::RecvFrom(void *buf, size_t len, int flags,
 		struct sockaddr *from, int *fromlen)
 {

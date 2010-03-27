@@ -69,6 +69,7 @@ public:
 	virtual void GetSockopt(int level, int optname, void* option,
 			int* optlen) { throw EINVAL; }
 	virtual void GetSockname(struct sockaddr* addr, int* namelen) { throw EINVAL; }
+	virtual void GetPeername(struct sockaddr* addr, int* namelen) { throw EINVAL; }
 
 	virtual int SendTo(const void *buf, size_t len, int flags,
 			const struct sockaddr* to, int tolen) { throw EINVAL; }
