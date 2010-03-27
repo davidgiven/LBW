@@ -144,6 +144,13 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(144, sys_msync);
 		CALL_SYSCALL(146, compat_sys_writev);
 		CALL_SYSCALL(150, sys_mlock);
+		CALL_SYSCALL(154, enosys); // sys_sched_setparam
+		CALL_SYSCALL(155, enosys); // sys_sched_getparam
+		CALL_SYSCALL(156, enosys); // sys_sched_setscheduler
+		CALL_SYSCALL(157, enosys); // sys_sched_getscheduler
+		CALL_SYSCALL(158, enosys); // sys_sched_yield
+		CALL_SYSCALL(159, enosys); // sys_sched_get_priority_max
+		CALL_SYSCALL(160, enosys); // sys_sched_get_priority_min
 		CALL_SYSCALL(162, compat_sys_nanosleep);
 		CALL_SYSCALL(163, sys_mremap);
 		CALL_SYSCALL(168, sys_poll);
@@ -229,4 +236,9 @@ int32_t Linux_MCE_Handler(Registers& regs)
 	{
 		error("internal error: %s", e.what());
 	}
+}
+
+SYSCALL(enosys)
+{
+	throw ENOSYS;
 }
