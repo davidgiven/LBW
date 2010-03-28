@@ -69,8 +69,9 @@ void VFS::Resolve(VFSNode* cwd, const string& path, Ref<VFSNode>& node,
 	string p = path;
 	if (p == "/")
 	{
+		node = root;
 		if (!cwd)
-			node = ::cwd;
+			node = root;
 		else
 			node = cwd;
 		leaf = ".";
