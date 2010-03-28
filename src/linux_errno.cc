@@ -7,6 +7,8 @@
 
 int ErrnoI2L(int e)
 {
+	assert(e > 0);
+
 	switch (e)
 	{
 		case EAGAIN:          return LINUX_EAGAIN;
@@ -30,6 +32,7 @@ int ErrnoI2L(int e)
 		case ENOTTY:          return LINUX_ENOTTY;
 		case ENXIO:           return LINUX_ENXIO;
 		case EOPNOTSUPP:      return LINUX_EOPNOTSUPP;
+		case EOVERFLOW:       return LINUX_EOVERFLOW;
 		case EPERM:           return LINUX_EPERM;
 		case EPIPE:           return LINUX_EPIPE;
 		case EPROTONOSUPPORT: return LINUX_EPROTONOSUPPORT;
@@ -39,15 +42,8 @@ int ErrnoI2L(int e)
 		case ETIMEDOUT:       return LINUX_ETIMEDOUT;
 		case ETXTBSY:         return LINUX_ETXTBSY;
 		case EXDEV:           return LINUX_EXDEV;
+
+		default:
+			error("Interix errno we don't know about yet; update linux_errno.cc with %d", e);
 	}
-
-	printf("interix errno %d!\n", e);
-	return e;
-}
-
-int SysError(int e)
-{
-	if (e == -1)
-		return -ErrnoI2L(errno);
-	return e;
 }

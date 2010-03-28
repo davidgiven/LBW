@@ -303,20 +303,19 @@ SYSCALL(sys_tgkill)
 	if (tgid != pid)
 	{
 		log("tgkill(%d, %d, %d) not supported yet", tgid, pid, sig);
-		return -LINUX_EINVAL;
+		throw EINVAL;
 	}
 
 	int isig = convert_signal_l2i(sig);
 	if (isig == -1)
 	{
 		log("signal %d not supported on Interix", sig);
-		return -LINUX_EINVAL;
+		throw EINVAL;
 	}
 
-//	DumpMap(getpid());
-
 	int result = kill(pid, isig);
-	return SysError(result);
+	CheckError(result);
+	return 0;
 }
 
 

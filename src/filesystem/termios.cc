@@ -387,8 +387,7 @@ int linux_tcgetattr(int fd, void* termios)
 	struct termios it;
 
 	int result = tcgetattr(fd, &it);
-	if (result == -1)
-		return -ErrnoI2L(errno);
+	CheckError(result);
 	convert_termios(it, lt);
 	return 0;
 }
@@ -410,5 +409,6 @@ int linux_tcsetattr(int fd, int action, void* termios)
 
 	convert_termios(lt, it);
 	int result = tcsetattr(fd, action, &it);
-	return SysError(result);
+	CheckError(result);
+	return result;
 }

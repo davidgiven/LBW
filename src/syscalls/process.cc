@@ -92,7 +92,8 @@ SYSCALL(sys_setuid)
 		return 0;
 
 	int result = setuid(uid);
-	return SysError(result);
+	CheckError(result);
+	return 0;
 }
 
 SYSCALL(sys_getuid16)
@@ -135,7 +136,8 @@ SYSCALL(sys_setgid)
 		return 0;
 
 	int result = setgid(gid);
-	return SysError(result);
+	CheckError(result);
+	return 0;
 }
 
 SYSCALL(sys_getgid16)
@@ -340,7 +342,7 @@ SYSCALL(sys32_waitpid)
 	/* Luckily, Interix and Linux wait statuses are compatible. */
 	int result = waitpid(pid, stat_addr, ioptions);
 	//log("process <%d> return result <%08x>", result);
-	return SysError(result);
+	return CheckError(result);
 }
 
 SYSCALL(compat_sys_wait4)

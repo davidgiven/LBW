@@ -75,7 +75,6 @@ struct ElfInfo
 
 extern int LoadElf(int fd, ElfInfo& info);
 
-extern int SysError(int e);
 extern int ErrnoI2L(int e);
 
 extern void StartMonitor(void);

@@ -18,7 +18,8 @@ SYSCALL(compat_sys_gettimeofday)
 	struct timeval& lt = *(struct timeval*) arg.a0.p;
 
 	int result = gettimeofday(&lt, NULL);
-	return SysError(result);
+	CheckError(result);
+	return 0;
 }
 
 SYSCALL(compat_sys_time)

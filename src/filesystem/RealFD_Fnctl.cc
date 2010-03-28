@@ -86,7 +86,8 @@ int RealFD::Fcntl(int cmd, u_int32_t argument)
 			int iflags = FileFlagsL2I(argument);
 			//log("setting flags for realfd %d to %x", fd, iflags);
 			int result = fcntl(fd, F_SETFL, iflags);
-			return SysError(result);
+			CheckError(result);
+			return result;
 		}
 
 		case LINUX_F_SETLK:
@@ -96,7 +97,8 @@ int RealFD::Fcntl(int cmd, u_int32_t argument)
 			convert(lfl, ifl);
 
 			int result = fcntl(fd, F_SETLK, &ifl);
-			return SysError(result);
+			CheckError(result);
+			return result;
 		}
 
 		case LINUX_F_SETLKW:
@@ -106,7 +108,8 @@ int RealFD::Fcntl(int cmd, u_int32_t argument)
 			convert(lfl, ifl);
 
 			int result = fcntl(fd, F_SETLKW, &ifl);
-			return SysError(result);
+			CheckError(result);
+			return result;
 		}
 
 		case LINUX_F_SETLK64:
@@ -116,7 +119,8 @@ int RealFD::Fcntl(int cmd, u_int32_t argument)
 			convert(lfl, ifl);
 
 			int result = fcntl(fd, F_SETLK, &ifl);
-			return SysError(result);
+			CheckError(result);
+			return result;
 		}
 
 		case LINUX_F_SETLKW64:
@@ -126,7 +130,8 @@ int RealFD::Fcntl(int cmd, u_int32_t argument)
 			convert(lfl, ifl);
 
 			int result = fcntl(fd, F_SETLKW, &ifl);
-			return SysError(result);
+			CheckError(result);
+			return result;
 		}
 	}
 

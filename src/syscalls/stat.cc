@@ -19,19 +19,19 @@ SYSCALL(compat_sys_newfstat)
 	fdo->Fstat(is);
 
 	if (is.st_dev > 0x10000)
-		throw -LINUX_EOVERFLOW;
+		throw EOVERFLOW;
 	ls.st_dev = is.st_dev;
 	ls.st_ino = is.st_ino;
 	ls.st_mode = is.st_mode;
 	ls.st_nlink = is.st_nlink;
 	if (is.st_uid > 0x10000)
-		throw -LINUX_EOVERFLOW;
+		throw EOVERFLOW;
 	ls.st_uid = is.st_uid;
 	if (is.st_gid > 0x10000)
-		throw -LINUX_EOVERFLOW;
+		throw EOVERFLOW;
 	ls.st_gid = is.st_gid;
 	if (is.st_rdev > 0x10000)
-		throw -LINUX_EOVERFLOW;
+		throw EOVERFLOW;
 	ls.st_rdev = is.st_rdev;
 	ls.st_size = is.st_size;
 	ls.st_blksize = is.st_blksize;
