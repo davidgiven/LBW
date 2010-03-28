@@ -235,6 +235,15 @@ int main(int argc, const char* argv[], const char* environ[])
 		if (!s)
 			error("lbw: unable to locate LBW executable");
 		Options.LBW = buffer;
+		if (access(Options.LBW.c_str(), X_OK) != 0)
+		{
+			string lbwexe = Options.LBW + ".exe";
+			Options.LBW += ".exe";
+			if (access(lbwexe.c_str(), X_OK) != 0)
+				error("lbw: neither %s nor %s are executable",
+						Options.LBW.c_str(), lbwexe.c_str());
+			Options.LBW = lbwexe;
+		}
 
 		/* Parse human arguments. */
 

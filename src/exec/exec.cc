@@ -9,6 +9,7 @@
 #include "filesystem/FD.h"
 #include "filesystem/VFS.h"
 #include "filesystem/InterixVFSNode.h"
+#include <signal.h>
 
 enum
 {
@@ -84,7 +85,7 @@ static void linux_exec(const string& pathname, const char* argv[], const char* e
 
 	/* Invoke child lwb instance. */
 
-	//log("exec <%s> into pid %d", pathname.c_str(), getpid());
+	//log("exec <%s> into pid %d using LBW <%s>", pathname.c_str(), getpid(), Options.LBW.c_str());
 	execve(Options.LBW.c_str(), (char* const*) argv, (char* const*) newenviron);
 }
 
@@ -171,7 +172,10 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 
 	int type = probe_executable(pathname);
 	if (type == UNKNOWN_EXECUTABLE)
+	{
+		Warning("Unknown executable type!");
 		throw ENOEXEC;
+	}
 
 	/* Beyond this point we cannot recover. */
 
@@ -208,5 +212,6 @@ void Exec(const string& pathname, const char* argv[], const char* environ[])
 	catch (int e)
 	{
 		error("Failed to exec with errno %d!", e);
+		kill(getpid(), SIGKILL);
 	}
 }
