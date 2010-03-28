@@ -110,6 +110,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 50, sys_getegid16);
 		CALL_SYSCALL( 52, sys_umount);
 		CALL_SYSCALL( 54, compat_sys_ioctl);
+		CALL_SYSCALL( 55, compat_sys_fcntl64);
 		CALL_SYSCALL( 57, sys_setpgid);
 		CALL_SYSCALL( 60, sys_umask);
 		CALL_SYSCALL( 63, sys_dup2);
