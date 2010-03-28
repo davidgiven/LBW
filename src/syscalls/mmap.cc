@@ -572,6 +572,18 @@ SYSCALL(sys_mremap)
 	throw ENOSYS;
 }
 
+/* madvise flags are comaptible */
+SYSCALL(sys_madvise)
+{
+	void* addr = arg.a0.p;
+	size_t length = arg.a1.u;
+	int flags = arg.a2.s;
+
+	int i = madvise(addr, length, flags);
+	CheckError(i);
+	return 0;
+}
+
 void MakeWriteable(u8* addr, u32 length)
 {
 	u8* topaddr = MemOp::AlignUp<0x10000>(addr + length - 1);

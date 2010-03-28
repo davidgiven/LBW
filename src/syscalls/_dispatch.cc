@@ -180,6 +180,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL(212, sys_chown);
 		CALL_SYSCALL(213, sys_setuid);
 		CALL_SYSCALL(214, sys_setgid);
+		CALL_SYSCALL(219, sys_madvise);
 		CALL_SYSCALL(220, compat_sys_getdents64);
 		CALL_SYSCALL(221, compat_sys_fcntl64);
 		CALL_SYSCALL(224, sys_gettid);
