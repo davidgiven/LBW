@@ -15,7 +15,7 @@
 PtsVFSNode::PtsVFSNode(VFSNode* parent, const string& name):
 	FakeVFSNode(parent, name)
 {
-	AddFile(new TunnelledFakeDirectory("ptms", "/dev/ptmx"));
+	AddFile(new TunnelledFakeDirectory("ptmx", "/dev/ptmx"));
 }
 
 PtsVFSNode::~PtsVFSNode()
