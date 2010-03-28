@@ -2,6 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export PATH
 busybox chmod a+rx bin/*
+busybox mkdir -p dev proc tmp
 if ! busybox test -x bin/grep; then
 	echo "Initialising Busybox shell..."
 	busybox --help | busybox grep 'Currently defined functions:' -A999 | busybox grep '^\s.*,' | busybox tr , '\n' | (cd /bin && busybox xargs -n1 busybox ln -s busybox)
