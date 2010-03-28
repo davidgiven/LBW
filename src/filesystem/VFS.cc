@@ -15,6 +15,9 @@ static Ref<VFSNode> cwd;
 
 void VFS::SetRoot(const string& path)
 {
+#if defined VERBOSE
+	log("SetRoot(%s)", path.c_str());
+#endif
 	root = new RootVFSNode(path);
 	cwd = (VFSNode*) root;
 }
