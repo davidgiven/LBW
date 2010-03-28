@@ -87,6 +87,7 @@ SYSCALL(sys32_clone)
 	switch (clone_flags)
 	{
 		case 0x01200011: /* fork, I think */
+		case 0x00100011:
 		{
 			pid_t newpid = stub32_fork(arg);
 			switch (newpid)
@@ -97,9 +98,19 @@ SYSCALL(sys32_clone)
 						if (child_tid)
 							*(pid_t*)child_tid = getpid();
 					}
+					if (clone_flags & LINUX_CLONE_PARENT_SETTID)
+					{
+						if (parent_tid)
+							*(pid_t*)parent_tid = getpid();
+					}
 					break;
 
 				default: /* parent */
+					if (clone_flags & LINUX_CLONE_PARENT_SETTID)
+					{
+						if (parent_tid)
+							*(pid_t*)parent_tid = newpid;
+					}
 					break;
 			}
 			return newpid;
