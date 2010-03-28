@@ -259,7 +259,13 @@ void InterixVFSNode::Unlink(const string& name)
 
 	int i = unlink(name.c_str());
 	if (i == -1)
-		throw errno;
+	{
+		/* Interix won't let us delete executables that are in use; for now
+		 * just ignore these errors.
+		 */
+		if (errno != ETXTBUSY)
+			throw errno;
+	}
 }
 
 void InterixVFSNode::Symlink(const string& name, const string& target)
