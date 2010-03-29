@@ -113,6 +113,7 @@ int32_t Linux_MCE_Handler(Registers& regs)
 		CALL_SYSCALL( 55, compat_sys_fcntl64);
 		CALL_SYSCALL( 57, sys_setpgid);
 		CALL_SYSCALL( 60, sys_umask);
+		CALL_SYSCALL( 61, sys_chroot);
 		CALL_SYSCALL( 63, sys_dup2);
 		CALL_SYSCALL( 64, sys_getppid);
 		CALL_SYSCALL( 65, sys_getpgrp);

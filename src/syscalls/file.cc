@@ -361,3 +361,11 @@ SYSCALL(sys_fsetxattr)
 {
 	throw EOPNOTSUPP;
 }
+
+SYSCALL(sys_chroot)
+{
+	const char* path = (const char*) arg.a0.p;
+
+	VFS::Chroot(NULL, path);
+	return 0;
+}

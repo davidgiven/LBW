@@ -43,6 +43,7 @@ public:
 	static void Unlink(VFSNode* cwd, const string& path);
 	static void Symlink(VFSNode* cwd, const string& target, const string& path);
 	static void Utimes(VFSNode* cwd, const string& path, const struct timeval times[2]);
+	static void Chroot(VFSNode* cwd, const string& path);
 };
 
 #endif

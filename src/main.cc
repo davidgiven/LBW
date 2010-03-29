@@ -206,6 +206,7 @@ int main(int argc, const char* argv[], const char* environ[])
 		{
 			Options.Chroot = s;
 			VFS::SetRoot(Options.Chroot);
+			VFS::SetCWD(NULL, "/");
 		}
 		unsetenv("LBW_CHROOT");
 

@@ -4,8 +4,8 @@
  */
 
 #include "globals.h"
-#include "VFS.h"
-#include "RootVFSNode.h"
+#include "filesystem/VFS.h"
+#include "filesystem/RootVFSNode.h"
 #include <typeinfo>
 
 //#define VERBOSE
@@ -19,7 +19,6 @@ void VFS::SetRoot(const string& path)
 	log("SetRoot(%s)", path.c_str());
 #endif
 	root = new RootVFSNode(path);
-	cwd = (VFSNode*) root;
 }
 
 Ref<VFSNode> VFS::GetRootNode()
@@ -358,3 +357,21 @@ void VFS::Utimes(VFSNode* cwd, const string& path, const struct timeval times[2]
 	node->Utimes(leaf, times);
 }
 
+void VFS::Chroot(VFSNode* cwd, const string& path)
+{
+#if defined VERBOSE
+	log("%s(%s)", __FUNCTION__, path.c_str());
+#endif
+
+	Ref<VFSNode> node;
+	string leaf;
+	Resolve(cwd, path, node, leaf, false);
+
+	Ref<VFSNode> newroot = node->Traverse(leaf);
+	InterixVFSNode* inewroot = dynamic_cast<InterixVFSNode*>((VFSNode*) newroot);
+	if (!inewroot)
+		throw EOPNOTSUPP;
+
+	Options.Chroot = inewroot->GetRealPath();
+	SetRoot(Options.Chroot);
+}
