@@ -10,14 +10,12 @@ include "tools/c.pm"
 HOME = os.getenv("HOME")
 VERSION = "0.1"
 
+MAKENSIS = '/dev/fs/C/Program\ Files/NSIS/makensis.exe'
+
+
 CBUILDFLAGS = {
 	'-Wall',
 	'-Wno-multichar',
-	'-O3',
-	'-g',
-	'-fomit-frame-pointer',
-	'-ffunction-sections',
-	'-fdata-sections'
 }
 
 CLIBRARIES = {
@@ -40,7 +38,7 @@ CLINKFLAGS = {
 	'-static',
 }
 
-lbw = cxxprogram {
+lbw_core = cxxprogram {
 	cxxfile "src/main.cc",
 	cxxfile "src/utils.cc",
 	cxxfile "src/ehandler.cc",
@@ -83,11 +81,66 @@ lbw = cxxprogram {
 	cxxfile "src/syscalls/exec.cc",
 	--cfile "src/binfmt/binfmt_elf.c",
 	file "ntdll.lib",
+}
 
+lbw_optimised = lbw_core {
+	CBUILDFLAGS = {
+		PARENT,
+		'-O3',
+		'-fomit-frame-pointer',
+		'-ffunction-sections',
+		'-fdata-sections',
+	},
+	CLINKFLAGS = {PARENT, "-s"},
+	
+	-- Don't use pm.install here because that creates a symlink, and NSIS
+	-- doesn't know about symlinks.
+	install = {"cp %out[1]% bin/lbw"}
+}
+
+lbw_debug = lbw_core {
+	CBUILDFLAGS = {
+		PARENT,
+		'-O0',
+		'-g'
+	},
 	install = pm.install("lbw")
 }
 
+busyboxshell_sh = simple {
+	class = "busyboxshell_sh",
+	command = {
+		"dos2unix %in[1]% %out[1]%"
+	},
+	outputs = {"%U%-%I%/busyboxshell.sh"},
+	file "extras/busyboxshell.sh",
+	
+	-- Don't use pm.install here because that creates a symlink, and NSIS
+	-- doesn't know about symlinks.
+	install = {"cp %out[1]% bin/busyboxshell.sh"}
+}
+	
+installer = simple {
+	class = "windows_installer",
+	command = {
+		"'%MAKENSIS%' -v2 -nocd -dVERSION=%VERSION% -dOUTFILE=%out% extras/installer.nsi"
+	},
+	outputs = {"%U%-%I%.exe"},
+	
+	file "extras/installer.nsi",
+	file "extras/busybox",
+	file "extras/BusyBox.txt",
+	file "extras/interix.termcap",
+	file "LICENSE",
+	file "README",
+	busyboxshell_sh,
+	lbw_optimised,
+	
+	install = pm.install("bin/LBW %VERSION% setup.exe")	
+}
+
 default = group {
-	lbw,
+	lbw_debug,
+	installer,
 }
 

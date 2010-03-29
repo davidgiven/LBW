@@ -1,0 +1,14 @@
+LBW uses the BusyBox shell. For more information, please see the BusyBox
+website:
+
+http://busybox.net 
+
+The version uses is the static binary from the Ubuntu package busybox-static,
+version 1:1.13.3-1ubuntu7. You may download the binary and source from here: 
+
+http://packages.ubuntu.com/karmic/busybox-static
+
+Alternatively, a snapshot of the source is available directly from the LBW
+website here:
+
+http://sourceforge.net/projects/lbw/files/external

@@ -1,0 +1,183 @@
+                                  LBW v0.1
+                                  ========
+                                  
+                         Copyright (C) 2010 David Given
+                                 2010-04-01
+            
+            
+                                 
+INTRODUCTION
+============
+
+LBW is a system call translator that allows you to run unmodified Linux
+ix86 binaries on Windows.
+
+It is not virtualisation; only one operating system is running, which is
+the Windows one. It is the equivalent of WINE, but in reverse, translating
+Linux system calls into Windows ones for execution.
+
+Currently it is in a proof-of-concept stage and is no way suitable for doing
+real work on --- it's full of bugs --- but currently it's good enough to run
+a Debian chroot, install packages with apt and dpkg, compile and run programs
+using gcc, ssh into remote terminals, and even run some basic X clients.
+Both static and dynamic binaries are supported (using Linux's own user-space
+dynamic binary loader).
+
+Right now it's known to work on Windows XP (because that's where I do my
+development). It is known not to work on Windows 7 --- I don't know why
+(assistance appreciated). I have no access to other Windows versions. Please
+let me know if you try it.
+
+LBW is released under the MIT open source license; please see the file
+LICENSE in the installation directory for the full text.
+
+
+                                *** BEWARE ***
+
+                                 LBW is EVIL.
+                                                                 
+                        Lots of things in LBW don't work!
+                        
+                        Lots of things will *never* work!
+                         
+                          BE VERY CAREFUL WHAT YOU DO.
+                             YOU HAVE BEEN WARNED.
+
+
+
+INSTALLATION
+============
+
+LBW uses Interix to do most of the heavy lifting, so you'll need to install
+that first. Interix is Microsoft Unix, and is also known as Services For
+Unix (SFU) or Subsystem for Unix Applications (SUA). Nobody's ever heard of
+it, but it's actually quite good, providing a complete Unix system that runs
+on top of the WinNT kernel, side-by-side with win32.
+
+Windows XP
+
+   You want SFU (a.k.a. Interix 3.5). It's a free download from here:
+   
+   http://www.microsoft.com/downloads/details.aspx?
+      FamilyID=896c9688-601b-44f1-81a4-02878ff11778
+   (all one line)
+
+Windows XP Home
+
+   Unfortunately SFU will not install on XP Home out-of-the-box. However,
+   with five minutes' work with a hex editor you can make it install.
+   Download the package referred to above and decompress it. Then edit
+   the SfuSetup.msi file. Search for:
+   
+       NOT (VersionNT = 501 AND MsiNTSuitePersonal)
+       
+   Change the 501 to 510 and save. SFU will now install. 
+   
+Windows 7
+
+   Interix is built in on this platform. To enable, go to Control Panel ->
+   Programs and Features -> Subsystem for Unix-based Applications and turn it
+   on. You'll have to reboot. 
+
+Other versions
+
+   I don't know --- get in touch if you make it work, please!
+   
+Once you've installed Interix, run the LBW installer and it should do the
+rest.
+
+
+
+USAGE
+=====
+
+The distribution package will (if you let it) set up a simple little chroot
+using BusyBox. You can use this to run static binaries. If you want to run
+dynamic libraries, see the section below on running Debian.
+
+/proc is not supported yet; some applications will fail due to its absence.
+
+/home is symlinked to point at your Windows home directory;
+"/home/My Documents" and "/home/Desktop" will work, for example.
+
+Your Windows drives can be found in /dev/fs.
+
+You *can* run Windows software directly from inside LBW --- make sure the
+.exe is executable and just run it.
+
+You can run as many LBW shell sessions as you like.
+
+
+
+RUNNING DEBIAN
+==============
+
+If you want to run a full Debian chroot, you will need access to a real Debian
+32-bit x86 machine to contruct a filesystem. (For legal reasons I cannot
+distribute a Debian filesystem with LBW, and cdebootstrap doesn't work yet.)
+
+On your Debian system, become root, and then do:
+
+   cd /tmp
+   deboostrap lenny debian
+   tar cvjf debian.tar.bz2 debian
+   
+Transfer the debian.tar.bz2 file to your Windows machine.
+
+On the Windows machine, start the BusyBox shell and do:
+
+   cd /
+   tar xvjf "/home/Desktop/debian.tar.bz2"
+   
+Once it's decompressed, you can start the Debian chroot with:
+
+   fakeroot chroot debian /bin/sh
+   
+You probably next want to teach Debian about the console by doing:
+
+   tic "$LBWHOME/interix.termcap"
+      
+...and then:
+
+   apt-get update
+   apt-get install python
+   python 
+
+Bear in mind that the system is not fully initialised, and it will require
+some tinkering to make work. Also, LBW simulates Linux *processes*, not a
+Linux *machine*; whenever Debian tries to do system management, such as
+adding users, it will fail. 
+
+Plus, various things do *not* work, some things crash, some things fail in
+really weird ways that confuse the package manager, etc. I have to wipe and
+reinitialise my Debian chroot on a regular basis as things go wrong with it.
+On the other hand, lots of stuff works, so if you're careful, you can get a
+lot done.
+
+
+
+MORE INFORMATION
+================
+
+Please see the website at:
+
+    http://lbw.sourceforge.net
+    
+...for more information, including a discussion of the things that don't
+work (which I'm not going into here, because there's just too many).
+
+
+
+THE AUTHOR
+==========
+
+Prime Mover was written by me, David Given. You may contact me at
+dg@cowlark.com, or visit my website at http://www.cowlark.com. There may or
+may not be anything interesting there.
+
+
+
+CHANGELOG
+=========
+
+2010-04-01: First version released to an unsuspecting world.

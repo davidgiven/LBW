@@ -1,0 +1,15 @@
+#	Reconstructed via infocmp from file: /usr/local/share/terminfo/i/interix
+# (rmacs/smacs removed for consistency)
+interix|opennt|opennt-25|ntconsole|ntconsole-25|OpenNT-term compatible with color:\
+	:am:ms:\
+	:co#80:li#25:\
+	:AL=\E[%dL:DL=\E[%dM:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC:\
+	:SF=\E[%dS:SR=\E[%dT:UP=\E[%dA:al=\E[L:bl=^G:bt=\E[Z:\
+	:cd=\E[J:ce=\E[K:cl=\E[2J:cm=\E[%i%d;%dH:dl=\E[M:do=^J:\
+	:ho=\E[H:k0=\EFA:k1=\EF1:k2=\EF2:k3=\EF3:k4=\EF4:k5=\EF5:\
+	:k6=\EF6:k7=\EF7:k8=\EF8:k9=\EF9:kD=\E[M:kH=\E[U:kI=\E[L:\
+	:kN=\E[T:kP=\E[S:kb=^H:kd=\E[B:kl=\E[D:kr=\E[C:ku=\E[A:\
+	:le=\E[D:ll=\E[U:md=\E[1m:me=\E[0m:mr=\E[7m:nd=\E[C:\
+	:nw=^M^J:rc=\E[u:sc=\E[s:se=\E[m:sf=\E[S:so=\E[1m:sr=\E[T:\
+	:ta=^I:te=\E[2b\E[u\r\E[K:ti=\E[s\E[1b:ue=\E[m:up=\E[A:\
+	:us=\E[4m:
