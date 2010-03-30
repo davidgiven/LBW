@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/resource.h>
 #include <unistd.h>
 
 typeof(Options) Options;
@@ -175,6 +176,13 @@ public:
 int main(int argc, const char* argv[], const char* environ[])
 {
 	string linuxfile;
+
+	/* Disable core files (as LBW has a tendency to crash and make them). */
+
+	{
+		struct rlimit rlimit = {0, 0};
+		setrlimit(RLIMIT_CORE, &rlimit);
+	}
 
 #if 0
 	for (int i=0; i<100; i++)
