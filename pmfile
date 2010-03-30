@@ -104,7 +104,7 @@ lbw_debug = lbw_core {
 		'-O0',
 		'-g'
 	},
-	install = pm.install("lbw")
+	install = pm.install("lbw-debug")
 }
 
 busyboxshell_sh = simple {
@@ -136,7 +136,7 @@ installer = simple {
 	busyboxshell_sh,
 	lbw_optimised,
 	
-	install = pm.install("bin/LBW %VERSION% setup.exe")	
+	install = pm.install("bin/LBW %VERSION% Setup.exe")	
 }
 
 default = group {

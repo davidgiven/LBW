@@ -14,7 +14,9 @@ ix86 binaries on Windows.
 
 It is not virtualisation; only one operating system is running, which is
 the Windows one. It is the equivalent of WINE, but in reverse, translating
-Linux system calls into Windows ones for execution.
+Linux system calls into Windows ones for execution. It is not emulation; the
+Linux applications run directly on the processor, resulting in (theoretically)
+full native performance.
 
 Currently it is in a proof-of-concept stage and is no way suitable for doing
 real work on --- it's full of bugs --- but currently it's good enough to run
@@ -26,7 +28,7 @@ dynamic binary loader).
 Right now it's known to work on Windows XP (because that's where I do my
 development). It is known not to work on Windows 7 --- I don't know why
 (assistance appreciated). I have no access to other Windows versions. Please
-let me know if you try it.
+let me know the results if you try it.
 
 LBW is released under the MIT open source license; please see the file
 LICENSE in the installation directory for the full text.
@@ -61,6 +63,11 @@ Windows XP
    http://www.microsoft.com/downloads/details.aspx?
       FamilyID=896c9688-601b-44f1-81a4-02878ff11778
    (all one line)
+   
+   Unless you want to compile LBW itself, you don't need to install the SDKs.
+   You probably do want to enable the case-sensitive file system, but bear in
+   mind that it might cause other parts of your Windows system to behave
+   oddly.
 
 Windows XP Home
 
@@ -77,7 +84,10 @@ Windows 7
 
    Interix is built in on this platform. To enable, go to Control Panel ->
    Programs and Features -> Subsystem for Unix-based Applications and turn it
-   on. You'll have to reboot. 
+   on. You'll have to reboot.
+   
+   *** NOTE that LBW doesn't actually work on this system. See the website
+   for more information. 
 
 Other versions
 
@@ -92,8 +102,10 @@ USAGE
 =====
 
 The distribution package will (if you let it) set up a simple little chroot
-using BusyBox. You can use this to run static binaries. If you want to run
-dynamic libraries, see the section below on running Debian.
+using BusyBox. You can run this from the Start menu. This can be used to
+run static binaries. If you want to run dynamic libraries, see the section
+below on running Debian. (Or you could install the libraries in the BusyBox
+shell, but you'll have to do this yourself.)
 
 /proc is not supported yet; some applications will fail due to its absence.
 
@@ -106,6 +118,45 @@ You *can* run Windows software directly from inside LBW --- make sure the
 .exe is executable and just run it.
 
 You can run as many LBW shell sessions as you like.
+
+LBW can be run manually from the Windows command line. The syntax is:
+
+    posix /c "C:\PathWhereYouInstalledLBW\lbw" \
+        [<LBW options...>] <executable> [<Linux options...>]
+  
+There is a bug in Interix where the above won't work if the executable is in
+a path containing spaces --- such as C:\Program Files. The 'posix /c' works
+around this. And yes, the lbw executable is *supposed* to not have a .exe
+file extension.
+
+LBW can *also* be run manually from an Interix or LBW command line. In this
+situation, do:
+
+   /dev/fs/C/PathWhereYouInstalledLBW/lbw
+        [<LBW options...>] <executable> [<Linux options...>]
+
+It's perfectly safe to run LBW from inside LBW --- in fact, that's what
+happens normally when you run programs.
+
+LBW supports the following command line options:
+
+    --help         Displays brief usage information.
+    
+    --fakeroot     Enables a simple fakeroot mode.
+                       Note that this is not a real fakeroot; all it does is
+                       force getuid() to return 0 and make chown() etc ignore
+                       errors. It's just enough to keep Debian happy.
+                       
+    --chroot <dir> Set up a simple chroot.
+                       This is not a real chroot; it's entirely not suitable
+                       for security purposes, and some of the semantics
+                       aren't right.
+                        
+    --warnings     Show emulation warnings.
+                       Normally when LBW sees something it doesn't handle
+                       properly it won't warn the user (as it gets really
+                       annoying when you just want to get stuff done). This
+                       option will cause LBW to spam you with all the info.
 
 
 
@@ -122,7 +173,7 @@ On your Debian system, become root, and then do:
    deboostrap lenny debian
    tar cvjf debian.tar.bz2 debian
    
-Transfer the debian.tar.bz2 file to your Windows machine.
+Transfer the debian.tar.bz2 file to the desktop of your Windows machine.
 
 On the Windows machine, start the BusyBox shell and do:
 
@@ -146,7 +197,7 @@ You probably next want to teach Debian about the console by doing:
 Bear in mind that the system is not fully initialised, and it will require
 some tinkering to make work. Also, LBW simulates Linux *processes*, not a
 Linux *machine*; whenever Debian tries to do system management, such as
-adding users, it will fail. 
+adding users or trying to run init, it will fail. 
 
 Plus, various things do *not* work, some things crash, some things fail in
 really weird ways that confuse the package manager, etc. I have to wipe and
