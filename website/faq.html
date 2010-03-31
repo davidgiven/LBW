@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="generator" content="WordGrinder 0.3.3">
+<title>LBW: Frequently Asked Questions</title>
+</head><body>
+
+<h1>LBW Frequently Asked Questions</h1>
+<h4>Does this replace Cygwin?</h4>
+<p>No. LBW is incredibly immature. Right now it works just enough to be interesting. It should under no circumstances be used for doing real work. Cygwin is written by real programmers who really know what they're doing and it really works.</p>
+<p>(That said, the screenshot on the front page was resized using netpbm installed into a LBW Debian chroot.)</p>
+<h4>Does this replace virtualisation?</h4>
+<p>No. Virtualisation solves a different problem to LBW. Virtualisation lets you run two complete operating systems on the same machine, with isolation between them. LBW lets you run Linux programs using the Windows operating system; there is no isolation. LBW's file system <tt>is</tt> the Windows file system. LBW processes appear in the Windows task list. They use the Windows TCP/IP stack.</p>
+<h4>How complete is LBW?</h4>
+<p>Terrible. I run into new unimplemented system calls on a daily basis. Plus, some of the existing system calls aren't implemented properly, or are stubbed out.</p>
+<p>Worse, some system calls <i>cannot</i> be implemented under Windows --- futex() and clone(), for example, require Windows kernel support (as far as I can tell). This means that LBW can't run Linux programs that use threads. I think I have a plausible workaround, but it'll be a while yet.</p>
+<h4>What's the performance like?</h4>
+Lousy --- much poorer than it ought to be. I think I know why; see <a href="broken.html">the technical wishlist page</a> for details.
+<h4>I've tried to run this program and I get a register dump and 'unimplemented syscall 123 (sys_foo_bar)'!</h4>
+<p>You've tried to use a syscall that LBW does not yet implement. Please let me know on the mailing list and I'll add it, or at least try to.</p>
+<h4>I've tried to run this program and I get a memory dump and 'unable to interpret above instruction sequence'!</h4>
+See the <a href="broken.html">technical wishlist</a> for full details, but the short summary is that you've tried to execute an instruction that the processor cannot run natively, and LBW has failed to analyse it correctly to translate it. Please let me know on the mailing list and I'll fix it, or at least try to.
+<h4>I've tried to run this program and I get some other crash!</h4>
+<p>I did mention LBW was full of bugs, right?</p>
+<p>Please let me know on the mailing list and I'll try to look into it... but if you really want to make me happy, it would be utterly awesome if you could try and figure out exactly why it's crashing and let me know.</p>
+<h4>Does LBW contain any Linux source code?</h4>
+<p>No. As of writing, every line of code in LBW is mine. (Apart from trivial lists of symbol definitions taken from the Linux kernel headers.)</p>
+<h4>Does LBW contain any Microsoft source code?</h4>
+<p>No. It does call a few undocumented Windows NT kernel entry points, but it's based on publically available documentation everywhere.</p>
+<h4>Is it a clean-room reimplementation of the Linux kernel?</h4>
+<p>No. I've used the Linux kernel source extensively to try and figure out how the various system calls work --- the Linux system call documentation is not great.</p>
+</body>
+</html>

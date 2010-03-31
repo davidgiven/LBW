@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="generator" content="WordGrinder 0.3.3">
+<title>LBW: Installing Interix</title>
+</head><body>
+
+<h1>LBW: Installing Interix</h1>
+<p>LBW requires Interix, a.k.a. Services for Unix, a.k.a. Subsystem for Unix Applications, a.k.a. Microsoft Unix.</p>
+<p>This is a Microsoft product that nobody's ever heard of. It provides a rather decent if dated Unix system that runs side-by-side with win32, on top of the Windows NT kernel. It comes with all the usual development tools, like gcc, make, a full set of Unix command line utilities and daemons, etc. LBW development is done on Interix.</p>
+<p>It's free and easy to install, but it is irritatingly fiddly.</p>
+<h2>Windows XP</h2>
+Download <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=896C9688-601B-44F1-81A4-02878FF11778">Services for Unix 3.5</a>. It's about 220MB, but we're only going to install a small part of it.
+<p>Run the executable. It'll decompress into a folder. Then run the installer in that folder. It'll ask you a series of questions:<ul></p>
+<li>you want a custom installation.</li>
+<li>when prompted as to which features you want to install, disable everything <i>except</i> 'Base Utilities' (inside 'Utilities'). [If you want to do LBW development, you'll need to install more than this --- ask on the mailing list.]</li>
+<li>Leave case sensitive file system and setuid binaries to <i>off</i>.</li>
+<li>You want to use local user name mapping.</li>
+<li>You want to use password and group files, not NIS. When prompted for filenames, just press NEXT.</li>
+<li>You want to install to the default location (<tt>C:\SFU</tt>).</li>
+<li>Leave <tt>cron</tt> and the other daemons turned off.</ul></li>
+<p>It may take a while at the 'configuring security services' stage --- let it run, it'll get there in the end.</p>
+<p>Once finished, it'll make you reboot.</p>
+<h2>Windows XP Home</h2>
+<p>Interix does not install out of the box on XP Home, because Microsoft apparently think you're too cheap.</p>
+<p>However, it's trivially easy to hack the installer to work. You will need a hex editor.</p>
+<p>First, download and decompress the Services for Unix installer as described above. Then, load the SfuSetup.msi file into your hex editor. Search for:</p>
+<blockquote><tt>NOT (VersionNT = 501 AND MsiNTSuitePersonal)</tt></blockquote>
+<p>Change the 501 to 510 and save.</p>
+<p>You can now proceed with the installation as described above.</p>
+<h2>Windows Vista</h2>
+<p>I don't know --- I don't have access to a Windows Vista machine. I think it's like Windows 7 (see below). I do know that Interix is only available on Vista Pro and Vista Ultimate systems.</p>
+<p>If you get Interix working on Vista, please let me know so I can update this page!</p>
+<h2>Windows 7</h2>
+<b>Note:</b> LBW does not work on Windows 7 yet!
+<p>Interix is built in, but disabled.</p>
+<p>To enable it, go to Control Panel -&gt; Programs and Features and check the 'Subsystem for Unix-based Applications' and turn it on. You'll have to reboot.</p>
+<p>[If you want to do LBW development, you'll need to do more than this --- ask on the mailing list.]</p>
+</body>
+</html>

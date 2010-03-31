@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="generator" content="WordGrinder 0.3.3">
+<title>LBW: Stuff That Is Broken</title>
+</head><body>
+
+<h1>LBW: Stuff that is broken</h1>
+<p>Lots of stuff in LBW is broken. Quite a lot of it I don't know how to fix. Can you help?</p>
+<h2>Windows Vista &amp; Windows 7</h2>
+<p>Right now LBW <i>only</i> works on Windows XP with Interix 3.5.</p>
+<p>LBW is known <i>not</i> to work on Windows 7 (with Interix 6.0). I do not know why. I have done some debugging, and it would appear that a whole bunch of stuff doesn't work --- <tt>mmap()</tt> producing <tt>EIO</tt> errors randomly but consistently, memory corruption when starting new processes, etc.</p>
+<p>My only real development machine is Windows XP. I would dearly love for someone to look into why LBW doesn't work on other versions. Given that Interix is a pain to install on Windows XP and trivial to install on Windows 7, it's a pity it doesn't work there.</p>
+<p>Plus, I have no access to any Vista machine, so have no idea how it stands there...</p>
+<h2><tt>%gs</tt> and segmentation</h2>
+<p>Linux uses the <tt>%gs</tt> register to identify the currently running thread. It does this by creating a 4GB-long GDT with base address at the thread's descriptor block.</p>
+<p>This allows the process to do things like:</p>
+<blockquote><tt>mov [gs:0], eax</tt></blockquote>
+<p>...to load the quad at the start of the descriptor block into %eax. On the register-starved ia32 architecture this improves performance drastically.</p>
+<p>Unfortunately Windows won't let me create GDTs. It will let me create LDTs using miscellaneous undocument Windows NT kernel calls, but they're not quite good enough --- Windows enforces a size limit on them to stop them extending above about <tt>$7ff00000</tt>.</p>
+<p>The issue here is that Linux processes also do things like:</p>
+<blockquote><tt>mov [gs:0xfffffffc], eax</tt></blockquote>
+<p>...to load the quad immediately <i>before</i> the start of the thread descriptor block. It can do this because address arithmetic in a 4GB-long segment wraps round, so adding <tt>0xfffffffc</tt> is equivalent to subtracting 4.</p>
+<p>But Windows won't let me create a 4GB LDT.</p>
+<p>What I'm doing instead is leaving <tt>%gs</tt> set to 0. This causes a page fault to occur every time the Linux process tries to execute an instruction that involves <tt>%gs</tt>. I can examine the code that it tried to execute, generate a fragment of equivalent code that does not use <tt>%gs</tt>, and run that instead, before returning to the process.</p>
+<p>This works, but it's dog slow --- page faults are not fast, and cripplingly, Linux assumes that %gs references <i>are</i> fast, so it thinks nothing of doing them in inner loops.</p>
+<p>I am attempting to patch the code with the translated fragments where possible, but I need five bytes to make this possible (the size of a jump instruction), and frequently it's not.</p>
+<p>Does anyone know a way to make Windows create a 4GB GDT or LDT? Preferably one that doesn't involve a custom kernel driver.</p>
+<h2><tt>mmap()</tt></h2>
+<p>Linux makes huge use of the <tt>mmap()</tt> system call. This attaches a file to the VM, causing a section of memory to become a view of the file. It's used all over the place, from loading code to copying files.</p>
+<p>Interix supports <tt>mmap()</tt> --- I would not even have attempted this if it hadn't. Unfortunately, Windows and Linux have rather different <tt>mmap()</tt> semantics.</p>
+<p>The big issue is: Linux allows <tt>mmap()</tt>ing on 4kB boundaries. Windows requires 64kB boundaries.</p>
+<p>This becomes a big problem when it comes to loading code. Linux applications are loaded at <tt>0x0804800</tt>, which is not 64kB-aligned. Therefore I cannot <tt>mmap()</tt> it. It gets worse when it comes to shared libraries; <tt>ld.so</tt> assumes that it can map a file to an arbitrary address and then map a 4kB page immediately after it.</p>
+<p>What I've got, therefore, is a ghastly mess of code that attempts to work out whether it's possible to <tt>mmap()</tt> the file directly or whether it has to allocate RAM and physically load the file data into it. While it currently appears to <i>work</i>, there are certain combinations of flags that won't work --- <tt>MAP_SHARED|MAP_FIXED</tt> to an address that is not 64kB-aligned, for example. It's also slow and uses lots of RAM.</p>
+<p>Does anyone know a way to make Windows map files using 4kB granularity?</p>
+<h2><tt>clone()</tt> and <tt>futex()</tt></h2>
+<p>Linux' threading primitives all boil down to just two system calls: <tt>clone()</tt>, which starts a new thread or process, and <tt>futex()</tt>, which is a basic synchronisation primitive.</p>
+<p>Interix has <i>neither</i> of these.</p>
+<p>Right now I only support <tt>clone()</tt> enough to make <tt>fork()</tt> work. Trying to create a thread will fail. <tt>futex()</tt> contains just enough stub support to make glibc start up, and no more.</p>
+<p>I believe that it is not possible to implement <tt>futex()</tt> on Windows, simply due to mismatches between the differing way synchronisation works on the two platforms --- there is no Windows NT primitive that is equivalent, and I cannot emulate <tt>futex()</tt> due to needing to be able to do stuff atomically.</p>
+<p>Can anyone prove me wrong?</p>
+<p>I do have a backup plan, which is to provide a replacement Linux pthreads library that calls out to the Interix pthreads library to do the work; but this is ugly and won't help with static binaries.</p>
+<h2>Signals</h2>
+<p>LBW's signal handling is a broken mess. Right now it only works by accident.</p>
+<p>Linux supports 64 signals (32 conventional ones and 32 real-time signals). Interix supports only 32, and what's more Interix doesn't support any of the signal-handling extensions that Linux does such as <tt>sigaltstack()</tt> or <tt>SA_SIGINFO</tt>.</p>
+<p>I have a horrible feeling I'm going to have to implement a complete interprocess signal handling layer on top of Interix'.</p>
+<p>However, I don't actually know much about signals. Can anyone offer insight?</p>
+<h2>File handles</h2>
+<p>Linux supports large files, with 64-bit lengths and offsets.</p>
+<p>Interix does not, even though Windows NT does. As a result, trying to use files bigger than 4GB (and probably 2GB) is going to work very badly.</p>
+<p>I could use the Windows NT kernel file manipulation functions directly, thus working around the Interix limit... if I knew the Windows NT file handle.</p>
+<p>Does anyone know how to get the Windows NT file handle from an Interix file descriptor?</p>
+</body>
+</html>
