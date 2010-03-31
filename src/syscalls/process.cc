@@ -209,6 +209,23 @@ SYSCALL(sys_setresuid)
 	return 0;
 }
 
+SYSCALL(sys_getresuid)
+{
+	uid_t* ruid = (uid_t*) arg.a0.p;
+	uid_t* euid = (uid_t*) arg.a1.p;
+	uid_t* suid = (uid_t*) arg.a2.p;
+
+	if (Options.FakeRoot)
+	{
+		*ruid = *euid = *suid = 0;
+		return 0;
+	}
+
+	*ruid = *suid = getuid();
+	*euid = geteuid();
+	return 0;
+}
+
 SYSCALL(sys_setresgid)
 {
 	gid_t rgid = arg.a0.s;
@@ -223,6 +240,23 @@ SYSCALL(sys_setresgid)
 		throw errno;
 	if (sgid != 0xffffffff)
 		Warning("setresgid() cannot set sgid yet");
+	return 0;
+}
+
+SYSCALL(sys_getresgid)
+{
+	gid_t* rgid = (gid_t*) arg.a0.p;
+	gid_t* egid = (gid_t*) arg.a1.p;
+	gid_t* sgid = (gid_t*) arg.a2.p;
+
+	if (Options.FakeRoot)
+	{
+		*rgid = *egid = *sgid = 0;
+		return 0;
+	}
+
+	*rgid = *sgid = getgid();
+	*egid = getegid();
 	return 0;
 }
 
