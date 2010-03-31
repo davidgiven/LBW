@@ -1,0 +1,119 @@
+#!/bin/sh
+# $Source: /cvsroot/spey/spey/mkdist,v $
+# $State: Exp $
+#
+# Script to build a distribution package.
+
+set -e
+PACKAGE=lbw
+	
+if [ "$1" = "" ]; then
+	echo "Please specify a version number!"
+	exit 1
+fi
+
+if [ -d ../$PACKAGE-$1 ]; then
+	echo "I think you've already generated version $1."
+	exit 1
+fi
+
+mkdir ../$PACKAGE-$1
+tar cQf - \
+	README \
+	README.source \
+	LICENSE \
+	pm \
+	pmfile \
+	tools/c.pm \
+	extras/busybox \
+	extras/BusyBox.txt \
+	extras/busyboxshell.sh \
+	extras/icon.ico \
+	extras/icon.svg \
+	extras/icon.xcf \
+	extras/installer.nsi \
+	extras/interix.termcap \
+	src/ehandler.cc \
+	src/Exception.cc \
+	src/Exception.h \
+	src/exec/a.out-i386.h \
+	src/exec/a.out.h \
+	src/exec/binfmts.h \
+	src/exec/elf-i386.h \
+	src/exec/elf.h \
+	src/exec/ElfLoader.cc \
+	src/exec/ElfLoader.h \
+	src/exec/exec.cc \
+	src/exec/exec.h \
+	src/filesystem/DevVFSNode.cc \
+	src/filesystem/DevVFSNode.h \
+	src/filesystem/FakeDirFD.cc \
+	src/filesystem/FakeDirFD.h \
+	src/filesystem/FakeFile.cc \
+	src/filesystem/FakeFile.h \
+	src/filesystem/FakeVFSNode.cc \
+	src/filesystem/FakeVFSNode.h \
+	src/filesystem/FD.cc \
+	src/filesystem/FD.h \
+	src/filesystem/file.cc \
+	src/filesystem/file.h \
+	src/filesystem/InterixVFSNode.cc \
+	src/filesystem/InterixVFSNode.h \
+	src/filesystem/PtsVFSNode.cc \
+	src/filesystem/PtsVFSNode.h \
+	src/filesystem/RealFD.cc \
+	src/filesystem/RealFD.h \
+	src/filesystem/RealFD_Fnctl.cc \
+	src/filesystem/RealFD_Ioctl.cc \
+	src/filesystem/RootVFSNode.cc \
+	src/filesystem/RootVFSNode.h \
+	src/filesystem/socket.h \
+	src/filesystem/termios.cc \
+	src/filesystem/termios.h \
+	src/filesystem/VFS.cc \
+	src/filesystem/VFS.h \
+	src/filesystem/VFSNode.cc \
+	src/filesystem/VFSNode.h \
+	src/globals.h \
+	src/linux/errno.h \
+	src/linux/mmap.h \
+	src/linux/page.h \
+	src/linux/syscall.h \
+	src/linux/syscall_names.h \
+	src/linux_errno.cc \
+	src/linux_errno.h \
+	src/main.cc \
+	src/MemOp.h \
+	src/Ref.h \
+	src/stdint.h \
+	src/syscalls/clone.cc \
+	src/syscalls/exec.cc \
+	src/syscalls/fd.cc \
+	src/syscalls/file.cc \
+	src/syscalls/memory.cc \
+	src/syscalls/memory.h \
+	src/syscalls/misc.cc \
+	src/syscalls/mmap.cc \
+	src/syscalls/mmap.h \
+	src/syscalls/process.cc \
+	src/syscalls/selectpoll.cc \
+	src/syscalls/signals.cc \
+	src/syscalls/sockets.cc \
+	src/syscalls/stat.cc \
+	src/syscalls/statfs.cc \
+	src/syscalls/syscalls.h \
+	src/syscalls/thread.cc \
+	src/syscalls/time.cc \
+	src/syscalls/_dispatch.cc \
+	src/syscalls/_names.cc \
+	src/Thread.cc \
+	src/Thread.h \
+	src/user.cc \
+	src/utils.cc \
+	\
+| tar xf - -C ../$PACKAGE-$1
+
+(cd .. && tar cvjf $PACKAGE-$1.tar.bz2 $PACKAGE-$1)
+
+echo ""
+echo "Done --- but did you remember to update the version number in the README?"

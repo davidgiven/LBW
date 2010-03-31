@@ -7,11 +7,26 @@
 
 include "tools/c.pm"
 
-HOME = os.getenv("HOME")
+-- Set this variable to point at the copy of ntdll.lib you want to link
+-- against.
+
+NTDLL = '/dev/fs/C/WinDDK/7600.16385.1/lib/wxp/i386/ntdll.lib'
+
+-- If you want to build the installer, set this to the path of the makensis.exe
+-- executable for the Nullsoft Installer System.
+ 
+MAKENSIS = '/dev/fs/C/Program Files/NSIS/makensis.exe'
+
+-- The version number of LBW (this gets embedded into the executables in
+-- various places).
+
 VERSION = "0.1"
 
-MAKENSIS = '/dev/fs/C/Program\ Files/NSIS/makensis.exe'
+-- You shouldn't need to change anything below here.
 
+-----------------------------------------------------------------------------
+
+HOME = os.getenv("HOME")
 
 CBUILDFLAGS = {
 	'-Wall',
@@ -33,8 +48,6 @@ CINCLUDES = {
 }
 
 CLINKFLAGS = {
-	--'-Wl,--image-base',
-	--'-Wl,0x00800000'
 	'-static',
 }
 
@@ -80,7 +93,7 @@ lbw_core = cxxprogram {
 	cxxfile "src/syscalls/selectpoll.cc",
 	cxxfile "src/syscalls/exec.cc",
 	--cfile "src/binfmt/binfmt_elf.c",
-	file "ntdll.lib",
+	file "%NTDLL%",
 }
 
 lbw_optimised = lbw_core {
@@ -95,7 +108,7 @@ lbw_optimised = lbw_core {
 	
 	-- Don't use pm.install here because that creates a symlink, and NSIS
 	-- doesn't know about symlinks.
-	install = {"cp %out[1]% bin/lbw"}
+	install = {"mkdir -p bin && cp %out[1]% bin/lbw"}
 }
 
 lbw_debug = lbw_core {
@@ -117,7 +130,7 @@ busyboxshell_sh = simple {
 	
 	-- Don't use pm.install here because that creates a symlink, and NSIS
 	-- doesn't know about symlinks.
-	install = {"cp %out[1]% bin/busyboxshell.sh"}
+	install = {"mkdir -p bin && cp %out[1]% bin/busyboxshell.sh"}
 }
 	
 installer = simple {
@@ -139,8 +152,9 @@ installer = simple {
 	install = pm.install("bin/LBW %VERSION% Setup.exe")	
 }
 
-default = group {
+all = group {
 	lbw_debug,
-	installer,
+	installer
 }
 
+default = lbw_debug

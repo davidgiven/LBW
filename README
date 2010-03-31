@@ -42,59 +42,12 @@ LICENSE in the installation directory for the full text.
                         
                         Lots of things will *never* work!
                          
-                          BE VERY CAREFUL WHAT YOU DO.
+                                IT WILL CRASH.
+                                
+                   Back up your data, keep your system secure,
+                              and above all else:
+
                              YOU HAVE BEEN WARNED.
-
-
-
-INSTALLATION
-============
-
-LBW uses Interix to do most of the heavy lifting, so you'll need to install
-that first. Interix is Microsoft Unix, and is also known as Services For
-Unix (SFU) or Subsystem for Unix Applications (SUA). Nobody's ever heard of
-it, but it's actually quite good, providing a complete Unix system that runs
-on top of the WinNT kernel, side-by-side with win32.
-
-Windows XP
-
-   You want SFU (a.k.a. Interix 3.5). It's a free download from here:
-   
-   http://www.microsoft.com/downloads/details.aspx?
-      FamilyID=896c9688-601b-44f1-81a4-02878ff11778
-   (all one line)
-   
-   Unless you want to compile LBW itself, you don't need to install the SDKs.
-   You probably do want to enable the case-sensitive file system, but bear in
-   mind that it might cause other parts of your Windows system to behave
-   oddly.
-
-Windows XP Home
-
-   Unfortunately SFU will not install on XP Home out-of-the-box. However,
-   with five minutes' work with a hex editor you can make it install.
-   Download the package referred to above and decompress it. Then edit
-   the SfuSetup.msi file. Search for:
-   
-       NOT (VersionNT = 501 AND MsiNTSuitePersonal)
-       
-   Change the 501 to 510 and save. SFU will now install. 
-   
-Windows 7
-
-   Interix is built in on this platform. To enable, go to Control Panel ->
-   Programs and Features -> Subsystem for Unix-based Applications and turn it
-   on. You'll have to reboot.
-   
-   *** NOTE that LBW doesn't actually work on this system. See the website
-   for more information. 
-
-Other versions
-
-   I don't know --- get in touch if you make it work, please!
-   
-Once you've installed Interix, run the LBW installer and it should do the
-rest.
 
 
 
@@ -231,4 +184,6 @@ may not be anything interesting there.
 CHANGELOG
 =========
 
-2010-04-01: First version released to an unsuspecting world.
+2010-04-01: First version released to an unsuspecting world. Many thanks to
+Jayson Smith for being the first guinea-pig to try this *ever*. He's a brave
+man and a lucky one.

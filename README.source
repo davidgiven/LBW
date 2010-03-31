@@ -1,0 +1,113 @@
+                                  LBW v0.1
+                                  ========
+                                  
+                         Copyright (C) 2010 David Given
+                                 2010-04-01
+            
+            
+                                 
+INTRODUCTION
+============
+
+LBW is a system call translator that allows you to run unmodified Linux
+ix86 binaries on Windows.
+
+This is the source package. If you want just want to run it, you've
+downloaded the wrong archive.
+
+LBW is released under the MIT open source license; please see the file
+LICENSE for the full text.
+
+
+
+SETUP
+=====
+
+In order to build LBW, you need an Interix development environment with the
+GNU SDK.
+
+I also strongly suggest downloading the SUA Community's Complete Toolset
+of add-on packages, available from here:
+
+    http://www.suacommunity.com/SUA.aspx#bundles
+
+It makes the environment much easier to work with, plus I don't know whether
+LBW builds without it.
+
+Additional dependencies are:
+
+  - The Nullsoft Installer System, used to build the Windows installer.
+    This is available from here:
+      
+        http://nsis.sourceforge.net/Main_Page
+          
+  - A copy of ntdll.lib, which is used to call into the Windows NT kernel.
+    The only official source I know of is the Windows Driver Kit:
+    
+        http://www.microsoft.com/downloads/details.aspx?displaylang=en
+            &FamilyID=36a2630f-5d56-43b5-b996-7633f2ec14ff
+        (all one line)
+    
+    However as it's 650MB and all you need is one file, you may wish to find
+    other sources... hem, hem.
+    
+All work happens inside the Interix environment.
+
+You then need to edit the 'pmfile' file and change the indicated paths at the
+top of the file to point to where you've installed NSIS and ntdll.lib.
+
+    
+    
+BUILDING
+========
+
+LBW is built using Prime Mover. The full documentation is here:
+
+    http://primemover.sourceforge.net/
+   
+However, no installation is needed --- to build the debug version of LBW,
+simply do:
+
+    ./pm
+    
+(If this is the first time you're running Prime Mover, you'll see a lot of
+compiler warnings appear on the screen. This is normal and is due to a bug
+in Interix' version of gcc. Ignore them.)
+
+You'll end up with a symlink to the LBW binary called ./lbw-debug. You can
+run this directly from inside Interix.
+
+To build everything, including the release version and installer package, do:
+
+    ./pm all
+
+
+
+MORE INFORMATION
+================
+
+Please see the website at:
+
+    http://lbw.sourceforge.net
+    
+...for more information, including a discussion of the things that don't
+work (which I'm not going into here, because there's just too many).
+
+
+
+THE AUTHOR
+==========
+
+Prime Mover was written by me, David Given. You may contact me at
+dg@cowlark.com, or visit my website at http://www.cowlark.com. There may or
+may not be anything interesting there.
+
+
+
+CHANGELOG
+=========
+
+2010-04-01: First version released to an unsuspecting world. Many thanks to
+Jayson Smith for being the first guinea-pig to try this *ever*. He's a brave
+man and a lucky one.
+ 
