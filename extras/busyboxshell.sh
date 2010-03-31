@@ -44,7 +44,11 @@ if ! "$bb" test -x bin/busybox; then
 fi
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-SHELL=interix
+export PATH
+
+TERM=interix
+export TERM
+
 cd /
 exec "$bb" chroot "$HOME/$root" /bin/sh --login
 "$bb" ash
