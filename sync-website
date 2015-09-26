@@ -1,2 +1,2 @@
 #!/bin/sh
-rsync --delete -avP -e ssh website/broken.html website/faq.html website/index.html website/interix.html website/screenshot-large.png website/screenshot.png dtrg,lbw@web.sourceforge.net:/home/groups/l/lb/lbw/htdocs/
+rsync --delete -avP -e ssh website/redirect.html dtrg,lbw@web.sourceforge.net:/home/groups/l/lb/lbw/htdocs/index.html
