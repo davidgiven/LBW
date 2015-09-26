@@ -1,24 +1,24 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-<meta name="generator" content="WordGrinder 0.3.3">
-<title>LBW: Installing Interix</title>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="generator" content="WordGrinder 0.6.0"/>
+<title>Installing Interix</title>
 </head><body>
 
-<h1>LBW: Installing Interix</h1>
 <p>LBW requires Interix, a.k.a. Services for Unix, a.k.a. Subsystem for Unix Applications, a.k.a. Microsoft Unix.</p>
 <p>This is a Microsoft product that nobody's ever heard of. It provides a rather decent if dated Unix system that runs side-by-side with win32, on top of the Windows NT kernel. It comes with all the usual development tools, like gcc, make, a full set of Unix command line utilities and daemons, etc. LBW development is done on Interix.</p>
 <p>It's free and easy to install, but it is irritatingly fiddly.</p>
 <h2>Windows XP</h2>
 Download <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=896C9688-601B-44F1-81A4-02878FF11778">Services for Unix 3.5</a>. It's about 220MB, but we're only going to install a small part of it.
-<p>Run the executable. It'll decompress into a folder. Then run the installer in that folder. It'll ask you a series of questions:<ul></p>
+<p>Run the executable. It'll decompress into a folder. Then run the installer in that folder. It'll ask you a series of questions:</p>
+<ul>
 <li>you want a custom installation.</li>
 <li>when prompted as to which features you want to install, disable everything <i>except</i> 'Base Utilities' (inside 'Utilities'). [If you want to do LBW development, you'll need to install more than this --- ask on the mailing list.]</li>
 <li>Leave case sensitive file system and setuid binaries to <i>off</i>.</li>
 <li>You want to use local user name mapping.</li>
 <li>You want to use password and group files, not NIS. When prompted for filenames, just press NEXT.</li>
 <li>You want to install to the default location (<tt>C:\SFU</tt>).</li>
-<li>Leave <tt>cron</tt> and the other daemons turned off.</ul></li>
+<li>Leave <tt>cron</tt> and the other daemons turned off.</li>
+</ul>
 <p>It may take a while at the 'configuring security services' stage --- let it run, it'll get there in the end.</p>
 <p>Once finished, it'll make you reboot.</p>
 <h2>Windows XP Home</h2>

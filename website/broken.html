@@ -1,11 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-<meta name="generator" content="WordGrinder 0.3.3">
-<title>LBW: Stuff That Is Broken</title>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="generator" content="WordGrinder 0.6.0"/>
+<title>Stuff That Is Broken</title>
 </head><body>
 
-<h1>LBW: Stuff that is broken</h1>
 <p>Lots of stuff in LBW is broken. Quite a lot of it I don't know how to fix. Can you help?</p>
 <h2>Windows Vista &amp; Windows 7</h2>
 <p>Right now LBW <i>only</i> works on Windows XP with Interix 3.5.</p>
@@ -16,7 +14,7 @@
 <p>Linux uses the <tt>%gs</tt> register to identify the currently running thread. It does this by creating a 4GB-long GDT with base address at the thread's descriptor block.</p>
 <p>This allows the process to do things like:</p>
 <blockquote><tt>mov [gs:0], eax</tt></blockquote>
-<p>...to load the quad at the start of the descriptor block into %eax. On the register-starved ia32 architecture this improves performance drastically.</p>
+<p>...to load the quad at the start of the descriptor block into <tt>%eax</tt>. On the register-starved ia32 architecture this improves performance drastically over other ways of doing it.</p>
 <p>Unfortunately Windows won't let me create GDTs. It will let me create LDTs using miscellaneous undocument Windows NT kernel calls, but they're not quite good enough --- Windows enforces a size limit on them to stop them extending above about <tt>$7ff00000</tt>.</p>
 <p>The issue here is that Linux processes also do things like:</p>
 <blockquote><tt>mov [gs:0xfffffffc], eax</tt></blockquote>

@@ -1,44 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-<meta name="generator" content="WordGrinder 0.3.2">
-<title>LBW: Linux Binaries on Windows</title>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="generator" content="WordGrinder 0.6.0"/>
+<title>Linux Binaries on Windows</title>
 </head><body>
 
-<h1>LBW: Linux Binaries on Windows</h1>
-<b>New!</b> LBW version 0.1 released to the unsuspecting public!
+<p><b>Important note.</b> I am, unfortunately, unlikely to ever work on this again. Given that Microsoft have killed Interix, I no longer have a machine which will run it, and it was a vile hack anyway that only really worked by accident. But if anyone, gods help you, find it useful and want to do something with it, go right ahead!</p>
+<p>Incidentally, we've migrated from SourceForge to GitHub. </p>
 <h2>What?</h2>
 <p>LBW is a Linux system call translator for Windows. It allows you to run unmodified Linux applications on top of Windows.</p>
 <p>It is not virtualisation; only one operating system is running, which is Windows. It is not emulation; Linux applications run directly on the processor, resulting in (theoretically) full native performance.</p>
 <p>Consider it as being like WINE, but in reverse.</p>
 <p>Right now LBW is in a proof-of-concept stage. It's in no way suitable for doing real work on as it's full of bugs. On the other hand it's adequate for running a Debian chroot, downloading and installing packages with apt and dpkg, compiling and running programs with gcc, connecting to remote servers with ssh, and even running some basic X applications.</p>
 <p>Everybody loves screenshots:</p>
-<a href="screenshot-large.png"><img src="screenshot.png" alt="LBW in action"></a>
-<p>
-Right now LBW runs on 32-bit Windows XP <b>only</b>.
+<a href="screenshot-large.png"><img src="screenshot.png" alt="LBW in action"/></a>
+<p>Right now LBW runs on 32-bit Windows XP <b>only</b>.</p>
 <h2>Danger! </h2>
-LBW is <b>evil</b>. It is about fifteen different hacks all balanced precariously on top of each other. Lots of things in LBW don't work. Lots of things will <i>never</i> work.
-<p>
-<b>It will crash.</b>
-<p>
-Back up your data, keep your system secure, and above all else:
-<p>
-<b>You have been warned.</b>
+<p>LBW is <i>evil</i>. It is about fifteen different hacks all balanced precariously on top of each other. Lots of things in LBW don't work. Lots of things will <i>never</i> work.</p>
+<p><b>It will crash.</b></p>
+<p>Back up your data, keep your system secure, and above all else:</p>
+<p><b>You have been warned.</b></p>
 <h2>Important links</h2>
 <a href="faq.html">The Frequently Asked Questions list</a><p>
 <a href="interix.html">How to install Interix</a> (which LBW needs)<p>
 <a href="broken.html">A list of things that I would like help fixing</a><p>
-<a href="http://lists.sourceforge.net/lists/listinfo/lbw-users">The mailing list</a> (please join this if you use LBW!)
+<a href="https://github.com/davidgiven/LBW/issues">The bug tracker on GitHub</a> (probably the best place to get in touch with me)<p>
 <h2>Where?</h2>
-LBW is <a href="http://sourceforge.net/projects/lbw">hosted on SourceForge</a>.
-<p>
-<a href="http://sourceforge.net"><img 
-src="http://sflogo.sourceforge.net/sflogo.php?group_id=307345&amp;type=1"
-width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
-<p>
-Both the source and a Windows installer package can be downloaded <a href="http://sourceforge.net/projects/lbw/files/">from the project download page</a>.
-<p>
-<b>Important!</b> LBW requires Interix, so you'll need to install this first. Please see the <a href="interix.html">installing Interix</a> page for instructions.
+<p>LBW is <a href="http://github.com/davidgiven/LBW">hosted on GitHub</a>.</p>
+<ns:link icon="link" url="https://github.com/davidgiven/LBW/releases/latest" title="LBW's latest release">
+<p>You can get the most recent version of LBW from the project download page.</p>
+<p>(You can also download the source for the version of BusyBox which is supplied with the LBW installer. Most people won't need this.)</p>
+</ns:link>
+<p><b>Important!</b> LBW requires Interix, so you'll need to install this first. Please see the <a href="interix.html">installing Interix</a> page for instructions.</p>
 <h2>How?</h2>
 <p>LBW works by running Linux code and intercepting the page faults that occur when the Linux code does something that Windows doesn't like --- such as making a system call into the Linux kernel.</p>
 <p>When this happens it simply (ha!) looks at the registers, determines what system call the application is trying to make, does it, and returns to the application. The application thinks the Linux kernel did the work; instead it was LBW.</p>
